@@ -1,0 +1,104 @@
+{
+    "name": "TinyFPGA-BX",
+    "info": "Stepspeed(Max): >5Mhz",
+    "toolchain": "icestorm",
+    "family": "ice40",
+    "type": "lp8k",
+    "package": "cm81",
+    "clock": {
+        "speed": "16000000",
+        "pin": "B2"
+    },
+    "interface": {
+        "type": "spi",
+        "max": "2000000",
+        "pins": {
+            "MOSI": "A2",
+            "MISO": "A1",
+            "SCK":  "B1",
+            "SEL":  "C2"
+        }
+    },
+    "blink": {
+        "pin": "B3"
+    },
+    "dout": [
+        {
+            "pin": "C1"
+        },
+        {
+            "pin": "D2"
+        },
+        {
+            "pin": "D1"
+        },
+        {
+            "pin": "E2"
+        }
+    ],
+    "din": [
+        {
+            "pin": "E1"
+        },
+        {
+            "pin": "G2"
+        },
+        {
+            "pin": "H1"
+        },
+        {
+            "pin": "J1"
+        },
+        {
+            "pin": "H2"
+        }
+    ],
+    "vout": [
+        {
+            "type": "pwm",
+            "pin": "A8"
+        },
+        {
+            "type": "pwm",
+            "pin": "B7"
+        },
+        {
+            "type": "pwm",
+            "pin": "A7"
+        },
+        {
+            "type": "pwm",
+            "pin": "B6"
+        },
+        {
+            "type": "pwm",
+            "pin": "A6"
+        }
+    ],
+    "joints": [
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "H9",
+                "dir": "D9"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "D8",
+                "dir": "C9"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "A9",
+                "dir": "B8"
+            }
+        }
+    ]
+}

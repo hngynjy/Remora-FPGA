@@ -1,0 +1,41 @@
+### main ###
+set_io sysclk B2
+
+### blink ###
+set_io BLINK_LED B3
+
+### interface_spi ###
+set_io SPI_MOSI A2
+set_io SPI_MISO A1
+set_io SPI_SCK B1
+set_io SPI_SSEL C2
+
+### pwmout ###
+set_io PWMOUT0 A8
+set_io PWMOUT1 B7
+set_io PWMOUT2 A7
+set_io PWMOUT3 B6
+set_io PWMOUT4 A6
+
+### joints_rcservo ###
+
+### din ###
+set_io DIN0 E1
+set_io DIN1 G2
+set_io DIN2 H1
+set_io DIN3 J1
+set_io DIN4 H2
+
+### dout ###
+set_io DOUT0 C1
+set_io DOUT1 D2
+set_io DOUT2 D1
+set_io DOUT3 E2
+
+### joints_stepper ###
+set_io STP0 H9
+set_io DIR0 D9
+set_io STP1 D8
+set_io DIR1 C9
+set_io STP2 A9
+set_io DIR2 B8
