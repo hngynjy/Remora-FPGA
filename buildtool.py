@@ -17,7 +17,15 @@ for path in glob.glob("plugins/*.py"):
     )
     plugins[plugin] = vplugin.Plugin(jdata)
 
-pinlists = {"main": (("sysclk", jdata['clock']['pin'], "INPUT"),)}
+
+pinlists = {}
+
+if jdata['toolchain'] == "icestorm":
+    pinlists["main"] = (("sysclk", jdata['clock']['pin'], "INPUT"),)
+
+if 'blink' in jdata:
+    pinlists["main"] = (("BLINK_LED", jdata['blink']['pin'], "OUTPUT"),)
+
 for plugin in plugins:
     if hasattr(plugins[plugin], "pinlist"):
         pinlists[plugin] = plugins[plugin].pinlist()
@@ -158,7 +166,8 @@ elif jdata['toolchain'] == "diamond":
     pcf_data.append('')
     pcf_data.append('TRACEID "00111100" ;')
     pcf_data.append('IOBUF ALLPORTS IO_TYPE=LVCMOS33 ;')
-    pcf_data.append('SYSCONFIG JTAG_PORT=DISABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=ENABLE  MCCLK_FREQ=10.23 ;')
+    #pcf_data.append('SYSCONFIG JTAG_PORT=DISABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=ENABLE  MCCLK_FREQ=10.23 ;')
+    pcf_data.append('SYSCONFIG JTAG_PORT=ENABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=DISABLE  MCCLK_FREQ=10.23 ;')
     pcf_data.append('USERCODE ASCII  "PIF2"      ;')
     pcf_data.append('')
     pcf_data.append('# LOCATE COMP "FDONE"           SITE "109";')
@@ -268,6 +277,41 @@ top_data.append("")
 top_data.append("")
 
 
+
+if jdata['toolchain'] == "diamond":
+    top_data.append("    // Internal Oscillator")
+    top_data.append("    defparam OSCH_inst.NOM_FREQ = \"133.00\";")
+    top_data.append("    OSCH OSCH_inst ( ")
+    top_data.append("        .STDBY(1'b0),")
+    top_data.append("        .OSC(sysclk),")
+    top_data.append("        .SEDSTDBY()")
+    top_data.append("    );")
+    top_data.append("")
+
+
+if 'blink' in jdata:
+    top_data.append("    reg led;")
+    top_data.append("    reg [31:0] counter;")
+    top_data.append("    reg [31:0] ledclk;")
+    top_data.append("    assign BLINK_LED = led;")
+    top_data.append("")
+    top_data.append("    always @(posedge sysclk) begin")
+    top_data.append("        if (counter == 0) begin")
+    top_data.append("            counter <= 10000000;")
+    top_data.append("            ledclk <= ~ledclk;")
+    top_data.append("        end else begin")
+    top_data.append("            counter <= counter - 1;")
+    top_data.append("        end")
+    top_data.append("    end")
+    top_data.append("")
+    top_data.append("    always @(posedge ledclk) begin")
+    top_data.append("        led <= ~led;")
+    top_data.append("    end")
+    top_data.append("")
+
+
+
+
 top_data.append(f"    parameter BUFFER_SIZE = {data_size};")
 top_data.append("")
 
@@ -276,11 +320,11 @@ top_data.append(f"    wire[{data_size - 1}:0] tx_data;")
 top_data.append("    reg signed [31:0] header_tx = 32'h64617461;")
 top_data.append("")
 
-if joints_en_total > joints:
-    top_data.append("    // fake joints_en's to fit byte")
-    for num in range(joints_en_total - joints):
-        top_data.append(f"    reg jointEnable{joints + num} = 0;")
-    top_data.append("")
+#if joints_en_total > joints:
+#    top_data.append("    // fake joints_en's to fit byte")
+#    for num in range(joints_en_total - joints):
+#        top_data.append(f"    reg jointEnable{joints + num} = 0;")
+#    top_data.append("")
 
 ## we have no enable pins at the moment
 #for num in range(joints):
@@ -333,8 +377,12 @@ for num in range(vouts):
     pos -= 16
 
 for num in range(joints_en_total):
-    top_data.append(f"    assign jointEnable{num} = rx_data[{pos-1}];")
+    if num < joints:
+        top_data.append(f"    assign jointEnable{num} = rx_data[{pos-1}];")
+    else:
+        top_data.append(f"    // assign jointEnable{num} = rx_data[{pos-1}];")
     pos -= 1
+
 
 for num in range((douts_total + 7) // 8 * 8):
     top_data.append(f"    assign DOUT{douts_total - num - 1} = rx_data[{pos-1}];")

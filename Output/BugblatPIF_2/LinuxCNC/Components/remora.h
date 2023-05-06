@@ -1,12 +1,12 @@
 #ifndef REMORA_H
 #define REMORA_H
 
-#define JOINTS              8
-#define VARIABLE_OUTPUTS    6
+#define JOINTS              3
+#define VARIABLE_OUTPUTS    1
 #define VARIABLE_INPUTS     0
 #define DIGITAL_OUTPUTS     8
 #define DIGITAL_INPUTS      8
-#define SPIBUFSIZE          50
+#define SPIBUFSIZE          20
 
 #define PRU_DATA            0x64617461
 #define PRU_READ            0x72656164

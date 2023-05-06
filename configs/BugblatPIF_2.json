@@ -6,7 +6,10 @@
     "package": "TQFP144",
     "clock": {
         "speed": "100000000",
-        "pin": "J3"
+        "pin": "0"
+    },
+    "blink": {
+        "pin": "113"
     },
     "interface": {
         "type": "spi",
@@ -73,26 +76,6 @@
         {
             "type": "pwm",
             "pin": "103"
-        },
-        {
-            "type": "pwm",
-            "pin": "104"
-        },
-        {
-            "type": "pwm",
-            "pin": "105"
-        },
-        {
-            "type": "pwm",
-            "pin": "111"
-        },
-        {
-            "type": "pwm",
-            "pin": "106"
-        },
-        {
-            "type": "pwm",
-            "pin": "107"
         }
     ],
     "joints": [
@@ -118,46 +101,6 @@
             "pins": {
                 "step": "81",
                 "dir": "82"
-            }
-        },
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "84",
-                "dir": "85"
-            }
-        },
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "87",
-                "dir": "89"
-            }
-        },
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "92",
-                "dir": "93"
-            }
-        },
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "95",
-                "dir": "96"
-            }
-        },
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "98",
-                "dir": "99"
             }
         }
     ]
