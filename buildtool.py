@@ -118,14 +118,19 @@ if jdata['toolchain'] == "icestorm":
     makefile_data.append("all: remorafpga.bin")
     makefile_data.append("")
     makefile_data.append("remorafpga.json: remorafpga.v")
-    makefile_data.append("	yosys -p 'synth_${FAMILY} -top top -json remorafpga.json' remorafpga.v")
+    makefile_data.append("	yosys -q -l yosys.log -p 'synth_${FAMILY} -top top -json remorafpga.json' remorafpga.v")
     makefile_data.append("")
     makefile_data.append("remorafpga.asc: remorafpga.json pins.pcf")
-    makefile_data.append("	nextpnr-${FAMILY} --${TYPE} --package ${PACKAGE} --json remorafpga.json --pcf pins.pcf --asc remorafpga.asc")
+    makefile_data.append("	nextpnr-${FAMILY} -q -l nextpnr.log --${TYPE} --package ${PACKAGE} --json remorafpga.json --pcf pins.pcf --asc remorafpga.asc")
+    makefile_data.append("	@echo \"\"")
+    makefile_data.append("	@grep -B 1 \"%$$\" nextpnr.log")
+    makefile_data.append("	@echo \"\"")
     makefile_data.append("")
     makefile_data.append("remorafpga.bin: remorafpga.asc")
     makefile_data.append("	icepack remorafpga.asc remorafpga.bin")
     makefile_data.append("")
+    makefile_data.append("clean:")
+    makefile_data.append("	rm -rf remorafpga.bin remorafpga.asc remorafpga.json yosys.log nextpnr.log")
     makefile_data.append("")
     open(f"{FIRMWARE_PATH}/Makefile", "w").write("\n".join(makefile_data))
 
@@ -320,16 +325,9 @@ top_data.append(f"    wire[{data_size - 1}:0] tx_data;")
 top_data.append("    reg signed [31:0] header_tx = 32'h64617461;")
 top_data.append("")
 
-#if joints_en_total > joints:
-#    top_data.append("    // fake joints_en's to fit byte")
-#    for num in range(joints_en_total - joints):
-#        top_data.append(f"    reg jointEnable{joints + num} = 0;")
-#    top_data.append("")
-
-## we have no enable pins at the moment
-#for num in range(joints):
-#    top_data.append(f"    reg jointEnable{  num};")
-#top_data.append("")
+for num in range(joints):
+    top_data.append(f"    wire jointEnable{num};")
+top_data.append("")
 
 
 if dins_total > dins:
@@ -365,6 +363,7 @@ top_data.append("")
 top_data.append(f"    // rx_data {rx_data_size}")
 pos = data_size
 
+top_data.append(f"    wire [31:0] header_rx;")
 top_data.append(f"    assign header_rx = {{rx_data[{pos-3*8-1}:{pos-3*8-8}], rx_data[{pos-2*8-1}:{pos-2*8-8}], rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};")
 pos -= 32
 

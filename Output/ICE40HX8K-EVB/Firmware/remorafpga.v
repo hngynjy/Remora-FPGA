@@ -236,6 +236,15 @@ module top (
     wire[399:0] tx_data;
     reg signed [31:0] header_tx = 32'h64617461;
 
+    wire jointEnable0;
+    wire jointEnable1;
+    wire jointEnable2;
+    wire jointEnable3;
+    wire jointEnable4;
+    wire jointEnable5;
+    wire jointEnable6;
+    wire jointEnable7;
+
     // fake din's to fit byte
     reg DIN6 = 0;
     reg DIN7 = 0;
@@ -269,6 +278,7 @@ module top (
     wire signed [31:0] jointFeedback7;
 
     // rx_data 400
+    wire [31:0] header_rx;
     assign header_rx = {rx_data[375:368], rx_data[383:376], rx_data[391:384], rx_data[399:392]};
     assign jointFreqCmd0 = {rx_data[343:336], rx_data[351:344], rx_data[359:352], rx_data[367:360]};
     assign jointFreqCmd1 = {rx_data[311:304], rx_data[319:312], rx_data[327:320], rx_data[335:328]};
