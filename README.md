@@ -4,7 +4,7 @@ port of Remora to FPGA's using Verilog
 
 only for research / untested on real machines
 
-the Bugblat PIF_2 (machxo3) will not work - warning chip gets hot !
+the Bugblat PIF_2 (machxo2) will not work - warning chip gets hot !
 
 
 
