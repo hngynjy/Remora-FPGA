@@ -16,6 +16,12 @@ Output: the generated files per config
 
 
 
+## the exciting part:
+
+https://github.com/multigcs/Remora-FPGA/blob/main/Output/ICE40HX8K-EVB/Firmware/remorafpga.v
+
+
+
 ## Demo-Video on ICE40 board:
 
 https://www.youtube.com/shorts/m4zXuHERiFU
