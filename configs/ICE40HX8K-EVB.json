@@ -1,0 +1,165 @@
+{
+    "name": "ICE40HX8K-EVB",
+    "toolchain": "icestorm",
+    "family": "ice40",
+    "type": "hx8k",
+    "package": "ct256",
+    "clock": {
+        "speed": "100000000",
+        "pin": "J3"
+    },
+    "interface": {
+        "type": "spi",
+        "pins": {
+            "MOSI": "P12",
+            "MISO": "P11",
+            "SCK": "R11",
+            "SEL": "L11"
+        }
+    },
+    "dout": [
+        {
+            "pin": "C14"
+        },
+        {
+            "pin": "B15"
+        },
+        {
+            "pin": "D13"
+        },
+        {
+            "pin": "B14"
+        },
+        {
+            "pin": "C12"
+        },
+        {
+            "pin": "E11"
+        },
+        {
+            "pin": "C13"
+        },
+        {
+            "pin": "A16"
+        }
+    ],
+    "din": [
+        {
+            "pin": "E10"
+        },
+        {
+            "pin": "C11"
+        },
+        {
+            "pin": "D11"
+        },
+        {
+            "pin": "B12"
+        },
+        {
+            "pin": "B10"
+        },
+        {
+            "pin": "B11"
+        }
+    ],
+    "vout": [
+        {
+            "type": "pwm",
+            "pin": "E4"
+        },
+        {
+            "type": "pwm",
+            "pin": "B2"
+        },
+        {
+            "type": "pwm",
+            "pin": "F5"
+        },
+        {
+            "type": "pwm",
+            "pin": "B1"
+        },
+        {
+            "type": "pwm",
+            "pin": "C1"
+        },
+        {
+            "type": "pwm",
+            "pin": "C2"
+        }
+    ],
+    "joints": [
+        {
+            "type": "stepper",
+            "cl": true,
+            "pins": {
+                "step": "J2",
+                "dir": "H1",
+                "enc_a": "A15",
+                "enc_b": "B13"
+            },
+            "enc_scale": "* 8 / 10"
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "G1",
+                "dir": "J5"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "H2",
+                "dir": "J4"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "G2",
+                "dir": "H4"
+            }
+        },
+
+
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "F2",
+                "dir": "H3"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "F3",
+                "dir": "G3"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "E2",
+                "dir": "H5"
+            }
+        },
+
+
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "F1",
+                "dir": "H6"
+            }
+        }
+    ]
+}

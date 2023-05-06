@@ -1,0 +1,164 @@
+{
+    "name": "BugblatPIF_2",
+    "toolchain": "diamond",
+    "family": "LCMXO2",
+    "type": "LCMXO2-7000HC-5TG144C",
+    "package": "TQFP144",
+    "clock": {
+        "speed": "100000000",
+        "pin": "J3"
+    },
+    "interface": {
+        "type": "spi",
+        "pins": {
+            "MOSI": "71",
+            "MISO": "45",
+            "SCK": "44",
+            "SEL": "4"
+        }
+    },
+    "dout": [
+        {
+            "pin": "38"
+        },
+        {
+            "pin": "39"
+        },
+        {
+            "pin": "42"
+        },
+        {
+            "pin": "43"
+        },
+        {
+            "pin": "47"
+        },
+        {
+            "pin": "48"
+        },
+        {
+            "pin": "49"
+        },
+        {
+            "pin": "50"
+        }
+    ],
+    "din": [
+        {
+            "pin": "75"
+        },
+        {
+            "pin": "78"
+        },
+        {
+            "pin": "83"
+        },
+        {
+            "pin": "86"
+        },
+        {
+            "pin": "91"
+        },
+        {
+            "pin": "94"
+        },
+        {
+            "pin": "97"
+        },
+        {
+            "pin": "100"
+        }
+    ],
+    "vout": [
+        {
+            "type": "pwm",
+            "pin": "103"
+        },
+        {
+            "type": "pwm",
+            "pin": "104"
+        },
+        {
+            "type": "pwm",
+            "pin": "105"
+        },
+        {
+            "type": "pwm",
+            "pin": "111"
+        },
+        {
+            "type": "pwm",
+            "pin": "106"
+        },
+        {
+            "type": "pwm",
+            "pin": "107"
+        }
+    ],
+    "joints": [
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "73",
+                "dir": "74"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "76",
+                "dir": "77"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "81",
+                "dir": "82"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "84",
+                "dir": "85"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "87",
+                "dir": "89"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "92",
+                "dir": "93"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "95",
+                "dir": "96"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "98",
+                "dir": "99"
+            }
+        }
+    ]
+}
