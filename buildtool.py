@@ -24,7 +24,7 @@ if jdata['toolchain'] == "icestorm":
     pinlists["main"] = (("sysclk", jdata['clock']['pin'], "INPUT"),)
 
 if 'blink' in jdata:
-    pinlists["main"] = (("BLINK_LED", jdata['blink']['pin'], "OUTPUT"),)
+    pinlists["blink"] = (("BLINK_LED", jdata['blink']['pin'], "OUTPUT"),)
 
 for plugin in plugins:
     if hasattr(plugins[plugin], "pinlist"):
@@ -132,6 +132,11 @@ if jdata['toolchain'] == "icestorm":
     makefile_data.append("clean:")
     makefile_data.append("	rm -rf remorafpga.bin remorafpga.asc remorafpga.json yosys.log nextpnr.log")
     makefile_data.append("")
+    makefile_data.append("tinyprog: remorafpga.bin")
+    makefile_data.append("	tinyprog -p remorafpga.bin")
+    makefile_data.append("")
+
+
     open(f"{FIRMWARE_PATH}/Makefile", "w").write("\n".join(makefile_data))
 
 
@@ -274,6 +279,28 @@ for plugin in plugins:
         top_data.append(plugins[plugin].ips())
 
 
+if 'blink' in jdata:
+    top_data.append("module blink")
+    top_data.append("    (")
+    top_data.append("        input clk,")
+    top_data.append("        input [31:0] speed,")
+    top_data.append("        output led")
+    top_data.append("    );")
+    top_data.append("    reg rled;")
+    top_data.append("    reg [31:0] counter;")
+    top_data.append("    assign led = rled;")
+    top_data.append("    always @(posedge clk) begin")
+    top_data.append("        if (counter == 0) begin")
+    top_data.append("            counter <= speed;")
+    top_data.append("            rled <= ~rled;")
+    top_data.append("        end else begin")
+    top_data.append("            counter <= counter - 1;")
+    top_data.append("        end")
+    top_data.append("    end")
+    top_data.append("endmodule")
+    top_data.append("")
+
+
 top_data.append("")
 argsstr = ",\n        ".join(top_arguments)
 top_data.append(f"module top (\n        {argsstr}")
@@ -295,25 +322,13 @@ if jdata['toolchain'] == "diamond":
 
 
 if 'blink' in jdata:
-    top_data.append("    reg led;")
-    top_data.append("    reg [31:0] counter;")
-    top_data.append("    reg [31:0] ledclk;")
-    top_data.append("    assign BLINK_LED = led;")
-    top_data.append("")
-    top_data.append("    always @(posedge sysclk) begin")
-    top_data.append("        if (counter == 0) begin")
-    top_data.append("            counter <= 10000000;")
-    top_data.append("            ledclk <= ~ledclk;")
-    top_data.append("        end else begin")
-    top_data.append("            counter <= counter - 1;")
-    top_data.append("        end")
-    top_data.append("    end")
-    top_data.append("")
-    top_data.append("    always @(posedge ledclk) begin")
-    top_data.append("        led <= ~led;")
-    top_data.append("    end")
-    top_data.append("")
 
+    top_data.append("    blink blink1 (")
+    top_data.append("        .clk (sysclk),")
+    top_data.append(f"        .speed ({int(jdata['clock']['speed']) // 1 // 2}),")
+    top_data.append("        .led (BLINK_LED)")
+    top_data.append("    );")
+    top_data.append("")
 
 
 
@@ -334,12 +349,6 @@ if dins_total > dins:
     top_data.append("    // fake din's to fit byte")
     for num in range(dins_total - dins):
         top_data.append(f"    reg DIN{dins + num} = 0;")
-    top_data.append("")
-
-if douts_total > douts:
-    top_data.append("    // fake dout's to fit byte")
-    for num in range(douts_total - douts):
-        top_data.append(f"    reg DOUT{douts + num} = 0;")
     top_data.append("")
 
 
@@ -384,7 +393,10 @@ for num in range(joints_en_total):
 
 
 for num in range((douts_total + 7) // 8 * 8):
-    top_data.append(f"    assign DOUT{douts_total - num - 1} = rx_data[{pos-1}];")
+    if douts_total - num - 1 < douts:
+        top_data.append(f"    assign DOUT{douts_total - num - 1} = rx_data[{pos-1}];")
+    else:
+        top_data.append(f"    // assign DOUT{douts_total - num - 1} = rx_data[{pos-1}];")
     pos -= 1
 
 
@@ -428,6 +440,123 @@ top_data.append("")
 open(f"{SOURCE_PATH}/remorafpga.v", "w").write("\n".join(top_data))
 
 
+
+
+spitest_data = []
+spitest_data.append("")
+spitest_data.append("import time")
+spitest_data.append("import spidev")
+spitest_data.append("from struct import *")
+spitest_data.append("")
+spitest_data.append("bus = 0")
+spitest_data.append("device = 1")
+spitest_data.append("spi = spidev.SpiDev()")
+spitest_data.append("spi.open(bus, device)")
+spitest_data.append(f"spi.max_speed_hz = {jdata['interface'].get('max', 5000000)}")
+spitest_data.append("spi.mode = 0")
+spitest_data.append("spi.lsbfirst = False")
+spitest_data.append("")
+spitest_data.append(f"data = [0] * {data_size // 8}")
+
+spitest_data.append("data[0] = 0x74")
+spitest_data.append("data[1] = 0x69")
+spitest_data.append("data[2] = 0x72")
+spitest_data.append("data[3] = 0x77")
+
+
+spitest_data.append("")
+spitest_data.append(f"JOINTS = {joints}")
+spitest_data.append(f"VOUTS = {vouts}")
+spitest_data.append(f"VINS = {vins}")
+spitest_data.append(f"DOUTS = {douts}")
+spitest_data.append(f"DINS = {douts}")
+spitest_data.append("")
+
+
+spitest_data.append("joints = [")
+for num in range(joints):
+    spitest_data.append("    500,")
+spitest_data.append("]")
+spitest_data.append("")
+spitest_data.append("vouts = [")
+for num in range(vouts):
+    spitest_data.append("    0xFFFF // 2,")
+spitest_data.append("]")
+spitest_data.append("")
+
+
+spitest_data.append(f"FREQ = {jdata['clock']['speed']}")
+spitest_data.append("")
+spitest_data.append("bn = 4")
+spitest_data.append("for value in joints:")
+spitest_data.append("    if value == 0:")
+spitest_data.append("        joint = list(pack('<i', (0)))")
+spitest_data.append("    else:")
+spitest_data.append("        joint = list(pack('<i', (FREQ // value)))")
+spitest_data.append("    for byte in range(4):")
+spitest_data.append("        data[bn + byte] = joint[byte]")
+spitest_data.append("    bn += 4")
+spitest_data.append("")
+spitest_data.append("for value in vouts:")
+spitest_data.append("    vout = list(pack('<H', (value)))")
+spitest_data.append("    for byte in range(2):")
+spitest_data.append("        data[bn + byte] = vout[byte]")
+spitest_data.append("    bn += 2")
+spitest_data.append("")
+spitest_data.append("# jointEnable and dout (TODO: split in bits)")
+spitest_data.append("data[bn] = 0xFF")
+spitest_data.append("bn += 1")
+spitest_data.append("")
+spitest_data.append("# dout")
+spitest_data.append("data[bn] = 0xFF")
+spitest_data.append("bn += 1")
+spitest_data.append("")
+
+spitest_data.append("")
+spitest_data.append("print(data)")
+spitest_data.append("rec = spi.xfer2(data)")
+spitest_data.append("print(rec)")
+spitest_data.append("")
+spitest_data.append("")
+spitest_data.append("")
+
+
+spitest_data.append("jointFeedback = [0] * JOINTS")
+spitest_data.append("processVariable = [0] * VOUTS")
+spitest_data.append("")
+spitest_data.append("pos = 0")
+spitest_data.append("header = unpack('<i', bytes(rec[pos:pos+4]))[0]")
+spitest_data.append("pos += 4")
+spitest_data.append("for num in range(JOINTS):")
+spitest_data.append("    jointFeedback[num] = unpack('<i', bytes(rec[pos:pos+4]))[0]")
+spitest_data.append("    pos += 4")
+spitest_data.append("for num in range(VINS):")
+spitest_data.append("    processVariable[num] = unpack('<h', bytes(rec[pos:pos+2]))[0]")
+spitest_data.append("    pos += 2")
+spitest_data.append("inputs = unpack('<B', bytes(rec[pos:pos+1]))[0]")
+spitest_data.append("pos += 1")
+spitest_data.append("")
+
+
+spitest_data.append("if header == 0x64617461:")
+spitest_data.append("    print(f'PRU_DATA: 0x{header:x}')")
+spitest_data.append("    for num in range(JOINTS):")
+spitest_data.append("        print(f' Joint({num}): {jointFeedback[num]}')")
+spitest_data.append("    for num in range(VINS):")
+spitest_data.append("        print(f' Var({num}): {processVariable[num]}')")
+spitest_data.append("    print(f'inputs {inputs:08b}')")
+spitest_data.append("else:")
+spitest_data.append("    print(f'Header: 0x{header:x}')")
+spitest_data.append("")
+
+
+spitest_data.append("")
+spitest_data.append("")
+
+
+
+
+open(f"{FIRMWARE_PATH}/spitest.py", "w").write("\n".join(spitest_data))
 
 
 

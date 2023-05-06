@@ -1,5 +1,5 @@
 
-CONFIG ?= configs/BugblatPIF_2.json
+CONFIG ?= configs/ICE40HX8K-EVB.json
 
 all: build
 
