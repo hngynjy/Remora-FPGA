@@ -6,73 +6,73 @@
     "type": "lp8k",
     "package": "cm81",
     "clock": {
-        "speed": "16000000",
+        "osc": "16000000",
+        "speed": "48000000",
         "pin": "B2"
     },
     "interface": {
         "type": "spi",
-        "max": "2000000",
+        "max": "6250000",
         "pins": {
-            "MOSI": "A2",
-            "MISO": "A1",
-            "SCK":  "B1",
-            "SEL":  "C2"
+            "MOSI": "G6",
+            "MISO": "H7",
+            "SCK":  "G7",
+            "SEL":  "G1"
         }
     },
     "blink": {
         "pin": "B3"
     },
+    "enable": [
+        {
+            "pin": "G9"
+        }
+    ],
     "dout": [
         {
-            "pin": "C1"
+            "pin": "D9"
         },
         {
-            "pin": "D2"
+            "pin": "D8"
         },
         {
-            "pin": "D1"
+            "pin": "C9"
         },
         {
-            "pin": "E2"
+            "pin": "A9"
+        },
+        {
+            "pin": "B8"
+        },
+        {
+            "pin": "A8"
         }
     ],
     "din": [
         {
-            "pin": "E1"
+            "pin": "C2"
         },
         {
-            "pin": "G2"
+            "pin": "B1"
         },
         {
-            "pin": "H1"
+            "pin": "A1"
         },
         {
-            "pin": "J1"
+            "pin": "A2"
         },
         {
-            "pin": "H2"
+            "pin": "J4"
         }
     ],
     "vout": [
         {
             "type": "pwm",
-            "pin": "A8"
+            "pin": "H2"
         },
         {
             "type": "pwm",
-            "pin": "B7"
-        },
-        {
-            "type": "pwm",
-            "pin": "A7"
-        },
-        {
-            "type": "pwm",
-            "pin": "B6"
-        },
-        {
-            "type": "pwm",
-            "pin": "A6"
+            "pin": "H9"
         }
     ],
     "joints": [
@@ -80,24 +80,40 @@
             "type": "stepper",
             "cl": false,
             "pins": {
-                "step": "H9",
-                "dir": "D9"
+                "step": "J1",
+                "dir": "H1"
             }
         },
         {
             "type": "stepper",
             "cl": false,
             "pins": {
-                "step": "D8",
-                "dir": "C9"
+                "step": "G2",
+                "dir": "E1"
             }
         },
         {
             "type": "stepper",
             "cl": false,
             "pins": {
-                "step": "A9",
-                "dir": "B8"
+                "step": "E2",
+                "dir": "D1"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "D2",
+                "dir": "C1"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "J9",
+                "dir": "J3"
             }
         }
     ]
