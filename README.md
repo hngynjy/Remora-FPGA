@@ -1,6 +1,12 @@
 # Remora-FPGA
 port of Remora to FPGA's using Verilog
 
+* no soft IP Cores
+* logic only
+* no jitter
+* fast and small
+* generated verilog-code / setup via json files (free pin-selection)
+
 
 only for research / untested on real machines
 
@@ -10,7 +16,7 @@ the Bugblat PIF_2 (machxo2) will not work - warning chip gets hot !
 
 ## Structure:
 
-buildtool.py plugins:  this are python scripts to generate the verilog file from a configuration
+buildtool.py plugins:  this are python scripts to generates the verilog files from a configuration
 
 configs: here are the config files for a specific setup (Target-FPGA / Pins)
 
