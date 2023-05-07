@@ -24,9 +24,14 @@ https://github.com/multigcs/Remora-FPGA/blob/main/Output/ICE40HX8K-EVB/Firmware/
 
 
 
-## Demo-Video on ICE40 board:
+## TinyFPGA-BX board with 5axis BOB:
 
-https://www.youtube.com/shorts/m4zXuHERiFU
+![test](https://raw.githubusercontent.com/multigcs/Remora-FPGA/main/files/4x.jpg)
+
+
+## Demo-Video on TinyFPGA-BX board:
+
+https://www.youtube.com/shorts/0nTmo4afwWs
 
 
 
