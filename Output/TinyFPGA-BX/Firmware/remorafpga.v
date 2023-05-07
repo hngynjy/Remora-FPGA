@@ -89,6 +89,58 @@ module pwm
 endmodule
 
 
+module rcservo
+    #(
+        parameter servo_freq = 480000, // clk / 1000 * 10
+        parameter servo_center = 72000, // clk / 1000 * 1.5
+        parameter servo_scale = 64
+    )
+    (
+        input clk,
+        input signed [31:0] jointFreqCmd,
+        output signed [31:0] jointFeedback,
+        output PWM
+    );
+    reg [31:0] jointCounter = 32'd0;
+    reg [31:0] jointFreqCmdAbs = 32'd0;
+    reg signed [31:0] jointFeedbackMem = 32'd0;
+    reg step = 0;
+    assign jointFeedback = jointFeedbackMem;
+    always @ (posedge clk) begin
+        if (jointFreqCmd > 0) begin
+            jointFreqCmdAbs = jointFreqCmd / 2;
+        end else begin
+            jointFreqCmdAbs = -jointFreqCmd / 2;
+        end
+        jointCounter <= jointCounter + 1;
+        if (jointFreqCmd != 0) begin
+            if (jointCounter >= jointFreqCmdAbs) begin
+                step <= ~step;
+                jointCounter <= 32'b0;
+                if (step) begin
+                    if (jointFreqCmd > 0) begin
+                        jointFeedbackMem = jointFeedbackMem + 1;
+                    end else begin
+                        jointFeedbackMem = jointFeedbackMem - 1;
+                    end
+                end
+            end
+        end
+    end
+    reg pulse;
+    assign PWM = pulse;
+    reg [31:0] counter = 0;
+    always @ (posedge clk) begin
+        counter = counter + 1;
+        if (counter == servo_freq) begin
+            pulse = 1;
+            counter = 0;
+        end else if (counter == servo_center + jointFeedbackMem / servo_scale) begin
+            pulse = 0;
+        end
+    end
+endmodule
+
 
 module stepgen
     (
@@ -203,7 +255,7 @@ endmodule
 
 
 module top (
-        input sysclk,
+        input sysclk_in,
         output BLINK_LED,
         input SPI_MOSI,
         output SPI_MISO,
@@ -211,9 +263,7 @@ module top (
         input SPI_SSEL,
         output PWMOUT0,
         output PWMOUT1,
-        output PWMOUT2,
-        output PWMOUT3,
-        output PWMOUT4,
+        output RCSERVO0,
         input DIN0,
         input DIN1,
         input DIN2,
@@ -223,87 +273,99 @@ module top (
         output DOUT1,
         output DOUT2,
         output DOUT3,
-        output STP0,
-        output DIR0,
+        output DOUT4,
+        output DOUT5,
         output STP1,
         output DIR1,
         output STP2,
-        output DIR2
+        output DIR2,
+        output STP3,
+        output DIR3,
+        output STP4,
+        output DIR4
     );
 
+
+    wire sysclk;
+    wire locked;
+    pll mypll(sysclk_in, sysclk, locked);
 
     blink blink1 (
         .clk (sysclk),
-        .speed (8000000),
+        .speed (24000000),
         .led (BLINK_LED)
     );
 
-    parameter BUFFER_SIZE = 224;
+    parameter BUFFER_SIZE = 240;
 
-    wire[223:0] rx_data;
-    wire[223:0] tx_data;
+    wire[239:0] rx_data;
+    wire[239:0] tx_data;
     reg signed [31:0] header_tx = 32'h64617461;
 
     wire jointEnable0;
     wire jointEnable1;
     wire jointEnable2;
+    wire jointEnable3;
+    wire jointEnable4;
 
     // fake din's to fit byte
     reg DIN5 = 0;
     reg DIN6 = 0;
     reg DIN7 = 0;
 
-    // vouts 5
+    // vouts 2
     wire [15:0] setPoint0;
     wire [15:0] setPoint1;
-    wire [15:0] setPoint2;
-    wire [15:0] setPoint3;
-    wire [15:0] setPoint4;
 
     // vins 0
 
-    // joints 3
+    // joints 5
     wire signed [31:0] jointFreqCmd0;
     wire signed [31:0] jointFreqCmd1;
     wire signed [31:0] jointFreqCmd2;
+    wire signed [31:0] jointFreqCmd3;
+    wire signed [31:0] jointFreqCmd4;
     wire signed [31:0] jointFeedback0;
     wire signed [31:0] jointFeedback1;
     wire signed [31:0] jointFeedback2;
+    wire signed [31:0] jointFeedback3;
+    wire signed [31:0] jointFeedback4;
 
-    // rx_data 224
+    // rx_data 240
     wire [31:0] header_rx;
-    assign header_rx = {rx_data[199:192], rx_data[207:200], rx_data[215:208], rx_data[223:216]};
-    assign jointFreqCmd0 = {rx_data[167:160], rx_data[175:168], rx_data[183:176], rx_data[191:184]};
-    assign jointFreqCmd1 = {rx_data[135:128], rx_data[143:136], rx_data[151:144], rx_data[159:152]};
-    assign jointFreqCmd2 = {rx_data[103:96], rx_data[111:104], rx_data[119:112], rx_data[127:120]};
-    assign setPoint0 = {rx_data[87:80], rx_data[95:88]};
-    assign setPoint1 = {rx_data[71:64], rx_data[79:72]};
-    assign setPoint2 = {rx_data[55:48], rx_data[63:56]};
-    assign setPoint3 = {rx_data[39:32], rx_data[47:40]};
-    assign setPoint4 = {rx_data[23:16], rx_data[31:24]};
+    assign header_rx = {rx_data[215:208], rx_data[223:216], rx_data[231:224], rx_data[239:232]};
+    assign jointFreqCmd0 = {rx_data[183:176], rx_data[191:184], rx_data[199:192], rx_data[207:200]};
+    assign jointFreqCmd1 = {rx_data[151:144], rx_data[159:152], rx_data[167:160], rx_data[175:168]};
+    assign jointFreqCmd2 = {rx_data[119:112], rx_data[127:120], rx_data[135:128], rx_data[143:136]};
+    assign jointFreqCmd3 = {rx_data[87:80], rx_data[95:88], rx_data[103:96], rx_data[111:104]};
+    assign jointFreqCmd4 = {rx_data[55:48], rx_data[63:56], rx_data[71:64], rx_data[79:72]};
+    assign setPoint0 = {rx_data[39:32], rx_data[47:40]};
+    assign setPoint1 = {rx_data[23:16], rx_data[31:24]};
     assign jointEnable0 = rx_data[15];
     assign jointEnable1 = rx_data[14];
     assign jointEnable2 = rx_data[13];
-    // assign jointEnable3 = rx_data[12];
-    // assign jointEnable4 = rx_data[11];
+    assign jointEnable3 = rx_data[12];
+    assign jointEnable4 = rx_data[11];
     // assign jointEnable5 = rx_data[10];
     // assign jointEnable6 = rx_data[9];
     // assign jointEnable7 = rx_data[8];
     // assign DOUT7 = rx_data[7];
     // assign DOUT6 = rx_data[6];
-    // assign DOUT5 = rx_data[5];
-    // assign DOUT4 = rx_data[4];
+    assign DOUT5 = rx_data[5];
+    assign DOUT4 = rx_data[4];
     assign DOUT3 = rx_data[3];
     assign DOUT2 = rx_data[2];
     assign DOUT1 = rx_data[1];
     assign DOUT0 = rx_data[0];
 
-    // tx_data 136
+    // tx_data 200
     assign tx_data = {
         header_tx[7:0], header_tx[15:8], header_tx[23:16], header_tx[31:24],
         jointFeedback0[7:0], jointFeedback0[15:8], jointFeedback0[23:16], jointFeedback0[31:24],
         jointFeedback1[7:0], jointFeedback1[15:8], jointFeedback1[23:16], jointFeedback1[31:24],
         jointFeedback2[7:0], jointFeedback2[15:8], jointFeedback2[23:16], jointFeedback2[31:24],
+        jointFeedback3[7:0], jointFeedback3[15:8], jointFeedback3[23:16], jointFeedback3[31:24],
+        jointFeedback4[7:0], jointFeedback4[15:8], jointFeedback4[23:16], jointFeedback4[31:24],
         DIN7,
         DIN6,
         DIN5,
@@ -312,7 +374,7 @@ module top (
         DIN2,
         DIN1,
         DIN0,
-        88'd0
+        40'd0
     };
 
     // spi interface
@@ -337,32 +399,16 @@ module top (
         .dty (setPoint1),
         .pwm (PWMOUT1)
     );
-    pwm pwm2 (
-        .clk (sysclk),
-        .dty (setPoint2),
-        .pwm (PWMOUT2)
-    );
-    pwm pwm3 (
-        .clk (sysclk),
-        .dty (setPoint3),
-        .pwm (PWMOUT3)
-    );
-    pwm pwm4 (
-        .clk (sysclk),
-        .dty (setPoint4),
-        .pwm (PWMOUT4)
-    );
-
-    // rcservo's
 
     // stepgen's
-    stepgen stepgen0 (
+    rcservo #(480000, 72000, 64) rcservo0 (
         .clk (sysclk),
         .jointFreqCmd (jointFreqCmd0),
         .jointFeedback (jointFeedback0),
-        .DIR (DIR0),
-        .STP (STP0)
+        .PWM (RCSERVO0)
     );
+
+    // stepgen's
     stepgen stepgen1 (
         .clk (sysclk),
         .jointFreqCmd (jointFreqCmd1),
@@ -376,6 +422,20 @@ module top (
         .jointFeedback (jointFeedback2),
         .DIR (DIR2),
         .STP (STP2)
+    );
+    stepgen stepgen3 (
+        .clk (sysclk),
+        .jointFreqCmd (jointFreqCmd3),
+        .jointFeedback (jointFeedback3),
+        .DIR (DIR3),
+        .STP (STP3)
+    );
+    stepgen stepgen4 (
+        .clk (sysclk),
+        .jointFreqCmd (jointFreqCmd4),
+        .jointFeedback (jointFeedback4),
+        .DIR (DIR4),
+        .STP (STP4)
     );
 
 endmodule
