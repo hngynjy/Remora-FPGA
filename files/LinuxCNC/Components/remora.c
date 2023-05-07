@@ -80,8 +80,8 @@ typedef struct {
 	float 			scale_recip[JOINTS];		// reciprocal value used for scaling
 	float			prev_cmd[JOINTS];
 	float			cmd_d[JOINTS];					// command derivative
-	hal_float_t 	*setPoint[VARIABLE_OUTPUTS];
-	hal_float_t 	*processVariable[VARIABLE_INPUTS];
+	hal_float_t 	*setPoint[VARIABLES];
+	hal_float_t 	*processVariable[VARIABLES];
 	hal_bit_t   	*outputs[DIGITAL_OUTPUTS];
 	hal_bit_t   	*inputs[DIGITAL_INPUTS];
 } data_t;
@@ -89,6 +89,47 @@ typedef struct {
 static data_t *data;
 
 
+typedef union
+{
+  // this allow structured access to the outgoing SPI data without having to move it
+  // this is the same structure as the PRU rxData structure
+  struct
+  {
+    uint8_t txBuffer[SPIBUFSIZE];
+  };
+  struct
+  {
+	int32_t header;
+    int32_t jointFreqCmd[JOINTS];
+    float 	setPoint[VARIABLES];
+	uint8_t jointEnable;
+	uint8_t outputs;
+	uint8_t spare2;
+    uint8_t spare1;
+  };
+} txData_t;
+
+static txData_t txData;
+
+
+typedef union
+{
+  // this allow structured access to the incoming SPI data without having to move it
+  // this is the same structure as the PRU txData structure
+  struct
+  {
+    uint8_t rxBuffer[SPIBUFSIZE];
+  };
+  struct
+  {
+    int32_t header;
+    int32_t jointFeedback[JOINTS];
+    float 	processVariable[VARIABLES];
+    uint8_t inputs;
+  };
+} rxData_t;
+
+static rxData_t rxData;
 
 
 
@@ -107,8 +148,7 @@ static int32_t		accum_diff = 0;
 
 typedef enum CONTROL { POSITION, VELOCITY, INVALID } CONTROL;
 
-//static int reset_gpio_pin = 25;				// RPI GPIO pin number used to force watchdog reset of the PRU 
-static int reset_gpio_pin = 23;				// RPI GPIO pin number used to force watchdog reset of the PRU 
+static int reset_gpio_pin = 25;				// RPI GPIO pin number used to force watchdog reset of the PRU 
 
 
 
@@ -177,15 +217,12 @@ int rtapi_app_main(void)
 	bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);      // The default
 	bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                   // The default
 
-	//bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_128);		// 3.125MHz on RPI3
-	bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_64);		// 6.250MHz on RPI3
+	bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_128);		// 3.125MHz on RPI3
+	//bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_64);		// 6.250MHz on RPI3
 	//bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32);		// 12.5MHz on RPI3
 
-    //bcm2835_spi_chipSelect(BCM2835_SPI_CS0);                      // The default
-    //bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);      // the default
-
-    bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);                      // The default
-    //bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW);      // the default
+	bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);                      // The default
+	//bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);      // the default
 
 
 	/* RPI_GPIO_P1_19        = 10 		MOSI when SPI0 in use
@@ -196,9 +233,9 @@ int rtapi_app_main(void)
 	 */
 
 	// Configure pullups on SPI0 pins - source termination and CS high (does this allows for higher clock frequencies??? wiring is more important here)
-	//bcm2835_gpio_set_pud(RPI_GPIO_P1_19, BCM2835_GPIO_PUD_DOWN);	// MOSI
-	//bcm2835_gpio_set_pud(RPI_GPIO_P1_21, BCM2835_GPIO_PUD_DOWN);	// MISO
-	//bcm2835_gpio_set_pud(RPI_GPIO_P1_24, BCM2835_GPIO_PUD_UP);		// CS0
+	bcm2835_gpio_set_pud(RPI_GPIO_P1_19, BCM2835_GPIO_PUD_DOWN);	// MOSI
+	bcm2835_gpio_set_pud(RPI_GPIO_P1_21, BCM2835_GPIO_PUD_DOWN);	// MISO
+	bcm2835_gpio_set_pud(RPI_GPIO_P1_24, BCM2835_GPIO_PUD_UP);		// CS0
 
 	// export spiPRU SPI enable and status bits
 	retval = hal_pin_bit_newf(HAL_IN, &(data->SPIenable),
@@ -213,7 +250,7 @@ int rtapi_app_main(void)
 			comp_id, "%s.SPI-status", prefix);
 	if (retval != 0) goto error;
 
-	bcm2835_gpio_fsel(reset_gpio_pin, BCM2835_GPIO_FSEL_OUTP);
+	//bcm2835_gpio_fsel(reset_gpio_pin, BCM2835_GPIO_FSEL_OUTP);
 	retval = hal_pin_bit_newf(HAL_IN, &(data->PRUreset),
 			comp_id, "%s.PRU-reset", prefix);
 	if (retval != 0) goto error;
@@ -299,15 +336,14 @@ This is throwing errors from axis.py for some reason...
 		data->maxaccel[n] = 1.0;
 	}
 
-	for (n = 0; n < VARIABLE_OUTPUTS; n++) {
-        // export pins
+	for (n = 0; n < VARIABLES; n++) {
+	// export pins
+
 		retval = hal_pin_float_newf(HAL_IN, &(data->setPoint[n]),
 		        comp_id, "%s.SP.%01d", prefix, n);
 		if (retval < 0) goto error;
 		*(data->setPoint[n]) = 0.0;
-	}
 
-	for (n = 0; n < VARIABLE_INPUTS; n++) {
 		retval = hal_pin_float_newf(HAL_OUT, &(data->processVariable[n]),
 		        comp_id, "%s.PV.%01d", prefix, n);
 		if (retval < 0) goto error;
@@ -754,11 +790,11 @@ void spi_read()
 	// update the PRUreset output
 	if (*(data->PRUreset))
 	{ 
-		bcm2835_gpio_set(reset_gpio_pin);
+		//bcm2835_gpio_set(reset_gpio_pin);
     }
 	else
 	{
-		bcm2835_gpio_clr(reset_gpio_pin);
+		//bcm2835_gpio_clr(reset_gpio_pin);
     }
 	
 	if (*(data->SPIenable))
@@ -779,18 +815,10 @@ void spi_read()
 					for (i = 0; i < JOINTS; i++)
 					{
 						// the PRU DDS accumulator uses 32 bit counter, this code converts that counter into 64 bits */
+						
+						    rxData.jointFeedback[i] *= 4194304;
 
-
-if (i == 0) {
-    // *0.8 for the encoder
-    rxData.jointFeedback[i] *= 3355443;
-
-} else {
-    rxData.jointFeedback[i] *= 4194304;
-
-}
-
-
+						
 						accum_diff = rxData.jointFeedback[i] - old_count[i];
 						old_count[i] = rxData.jointFeedback[i];
 						accum[i] += accum_diff;
@@ -800,19 +828,12 @@ if (i == 0) {
 						data->scale_recip[i] = (1.0 / STEP_MASK) / data->pos_scale[i];
 						curr_pos = (double)(accum[i]-STEP_OFFSET) * (1.0 / STEP_MASK);
 						*(data->pos_fb[i]) = (float)((curr_pos+0.5) / data->pos_scale[i]);
-
-
-
 					}
 
-//printf("## %i %i  %f      \r", rxData.jointFeedback[0], rxData.jointFeedback[0] / 4194304, *(data->pos_fb[0]) * data->pos_scale[0]); // p2 == p3
-
-
-
 					// Feedback
-					for (i = 0; i < VARIABLE_INPUTS; i++)
+					for (i = 0; i < VARIABLES; i++)
 					{
-						*(data->processVariable[i]) = (float)(rxData.processVariable[i]) * 100.0 / 32767.0;
+						*(data->processVariable[i]) = rxData.processVariable[i]; 
 					}
 
 					// Inputs
@@ -862,12 +883,11 @@ void spi_write()
 	// Data header
 	txData.header = PRU_WRITE;
 
+
 	// Joint frequency commands
 	for (i = 0; i < JOINTS; i++)
 	{
-		txData.jointFreqCmd[i] = data->freq[i];
-		txData.jointFreqCmd[i] = 100000000 / txData.jointFreqCmd[i];
-
+		txData.jointFreqCmd[i] = 48000000 / data->freq[i];
 	}
 
 	for (i = 0; i < JOINTS; i++)
@@ -883,9 +903,9 @@ void spi_write()
 	}
 
 	// Set points
-	for (i = 0; i < VARIABLE_OUTPUTS; i++)
+	for (i = 0; i < VARIABLES; i++)
 	{
-		txData.setPoint[i] = (int16_t)(*(data->setPoint[i]) * 32767.0 / 100.0);
+		txData.setPoint[i] = *(data->setPoint[i]);
 	}
 
 	// Outputs

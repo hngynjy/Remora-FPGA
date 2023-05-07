@@ -12,7 +12,7 @@
     },
     "interface": {
         "type": "spi",
-        "max": "6250000",
+        "max": "4000000",
         "pins": {
             "MOSI": "G6",
             "MISO": "H7",
@@ -68,11 +68,19 @@
     "vout": [
         {
             "type": "pwm",
-            "pin": "H2"
+            "pin": "B7"
         },
         {
             "type": "pwm",
-            "pin": "H9"
+            "pin": "B6"
+        }
+    ],
+    "vin": [
+        {
+            "pin": "A6"
+        },
+        {
+            "pin": "A7"
         }
     ],
     "joints": [
