@@ -20,8 +20,16 @@ for path in glob.glob("plugins/*.py"):
 
 pinlists = {}
 
+osc_clock = False
 if jdata['toolchain'] == "icestorm":
-    pinlists["main"] = (("sysclk", jdata['clock']['pin'], "INPUT"),)
+    osc_clock = jdata['clock'].get('osc')
+    if osc_clock:
+        pinlists["main"] = (("sysclk_in", jdata['clock']['pin'], "INPUT"),)
+    else:
+        pinlists["main"] = (("sysclk", jdata['clock']['pin'], "INPUT"),)
+
+
+
 
 if 'blink' in jdata:
     pinlists["blink"] = (("BLINK_LED", jdata['blink']['pin'], "OUTPUT"),)
@@ -118,7 +126,10 @@ if jdata['toolchain'] == "icestorm":
     makefile_data.append("all: remorafpga.bin")
     makefile_data.append("")
     makefile_data.append("remorafpga.json: remorafpga.v")
-    makefile_data.append("	yosys -q -l yosys.log -p 'synth_${FAMILY} -top top -json remorafpga.json' remorafpga.v")
+    verilog_files = "remorafpga.v"
+    if osc_clock:
+        verilog_files += " pll.v"
+    makefile_data.append(f"	yosys -q -l yosys.log -p 'synth_${{FAMILY}} -top top -json remorafpga.json' {verilog_files}")
     makefile_data.append("")
     makefile_data.append("remorafpga.asc: remorafpga.json pins.pcf")
     makefile_data.append("	nextpnr-${FAMILY} -q -l nextpnr.log --${TYPE} --package ${PACKAGE} --json remorafpga.json --pcf pins.pcf --asc remorafpga.asc")
@@ -300,6 +311,9 @@ if 'blink' in jdata:
     top_data.append("endmodule")
     top_data.append("")
 
+if osc_clock:
+    os.system(f"icepll -m -f '{SOURCE_PATH}/pll.v' -i {float(osc_clock) / 1000000} -o {float(jdata['clock']['speed']) / 1000000}")
+
 
 top_data.append("")
 argsstr = ",\n        ".join(top_arguments)
@@ -308,6 +322,11 @@ top_data.append("    );")
 top_data.append("")
 top_data.append("")
 
+if osc_clock:
+    top_data.append("    wire sysclk;")
+    top_data.append("    wire locked;")
+    top_data.append("    pll mypll(sysclk_in, sysclk, locked);")
+    top_data.append("")
 
 
 if jdata['toolchain'] == "diamond":
