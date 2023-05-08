@@ -10,10 +10,11 @@ jdata = json.loads(data)
 
 # loading plugins
 plugins = {}
-for path in glob.glob("plugins/*.py"):
-    plugin = path.split(".")[0].split("/")[1]
+for path in glob.glob("plugins/*"):
+    plugin = path.split("/")[1]
+    print(plugin)
     vplugin = importlib.import_module(
-        f".{plugin}", "plugins"
+        f".{plugin}", f"plugins.{plugin}"
     )
     plugins[plugin] = vplugin.Plugin(jdata)
 
