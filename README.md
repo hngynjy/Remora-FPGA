@@ -1,7 +1,7 @@
 # Remora-FPGA
 port of Remora to FPGA's using Verilog
 
-* no soft IP Cores
+* no Soft-Core
 * logic only
 * no jitter
 * fast and small
