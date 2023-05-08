@@ -1,8 +1,8 @@
-import os
 import glob
 import importlib
-import sys
 import json
+import os
+import sys
 
 data = open(sys.argv[1], "r").read()
 jdata = json.loads(data)
