@@ -5,7 +5,7 @@
 
 
 module spidev
-    #(parameter BUFFER_SIZE=8)
+    #(parameter BUFFER_SIZE=64)
     (
         input clk,
         input SPI_SCK,
@@ -88,58 +88,6 @@ module pwm
     assign pwm = rPwm;
 endmodule
 
-
-module rcservo
-    #(
-        parameter servo_freq = 480000, // clk / 1000 * 10
-        parameter servo_center = 72000, // clk / 1000 * 1.5
-        parameter servo_scale = 64
-    )
-    (
-        input clk,
-        input signed [31:0] jointFreqCmd,
-        output signed [31:0] jointFeedback,
-        output PWM
-    );
-    reg [31:0] jointCounter = 32'd0;
-    reg [31:0] jointFreqCmdAbs = 32'd0;
-    reg signed [31:0] jointFeedbackMem = 32'd0;
-    reg step = 0;
-    assign jointFeedback = jointFeedbackMem;
-    always @ (posedge clk) begin
-        if (jointFreqCmd > 0) begin
-            jointFreqCmdAbs = jointFreqCmd / 2;
-        end else begin
-            jointFreqCmdAbs = -jointFreqCmd / 2;
-        end
-        jointCounter <= jointCounter + 1;
-        if (jointFreqCmd != 0) begin
-            if (jointCounter >= jointFreqCmdAbs) begin
-                step <= ~step;
-                jointCounter <= 32'b0;
-                if (step) begin
-                    if (jointFreqCmd > 0) begin
-                        jointFeedbackMem = jointFeedbackMem + 1;
-                    end else begin
-                        jointFeedbackMem = jointFeedbackMem - 1;
-                    end
-                end
-            end
-        end
-    end
-    reg pulse;
-    assign PWM = pulse;
-    reg [31:0] counter = 0;
-    always @ (posedge clk) begin
-        counter = counter + 1;
-        if (counter == servo_freq) begin
-            pulse = 1;
-            counter = 0;
-        end else if (counter == servo_center + jointFeedbackMem / servo_scale) begin
-            pulse = 0;
-        end
-    end
-endmodule
 
 
 module stepgen
@@ -234,6 +182,58 @@ module quad
 endmodule 
 
 
+module rcservo
+    #(
+        parameter servo_freq = 480000, // clk / 1000 * 10
+        parameter servo_center = 72000, // clk / 1000 * 1.5
+        parameter servo_scale = 64
+    )
+    (
+        input clk,
+        input signed [31:0] jointFreqCmd,
+        output signed [31:0] jointFeedback,
+        output PWM
+    );
+    reg [31:0] jointCounter = 32'd0;
+    reg [31:0] jointFreqCmdAbs = 32'd0;
+    reg signed [31:0] jointFeedbackMem = 32'd0;
+    reg step = 0;
+    assign jointFeedback = jointFeedbackMem;
+    always @ (posedge clk) begin
+        if (jointFreqCmd > 0) begin
+            jointFreqCmdAbs = jointFreqCmd / 2;
+        end else begin
+            jointFreqCmdAbs = -jointFreqCmd / 2;
+        end
+        jointCounter <= jointCounter + 1;
+        if (jointFreqCmd != 0) begin
+            if (jointCounter >= jointFreqCmdAbs) begin
+                step <= ~step;
+                jointCounter <= 32'b0;
+                if (step) begin
+                    if (jointFreqCmd > 0) begin
+                        jointFeedbackMem = jointFeedbackMem + 1;
+                    end else begin
+                        jointFeedbackMem = jointFeedbackMem - 1;
+                    end
+                end
+            end
+        end
+    end
+    reg pulse;
+    assign PWM = pulse;
+    reg [31:0] counter = 0;
+    always @ (posedge clk) begin
+        counter = counter + 1;
+        if (counter == servo_freq) begin
+            pulse = 1;
+            counter = 0;
+        end else if (counter == servo_center + jointFeedbackMem / servo_scale) begin
+            pulse = 0;
+        end
+    end
+endmodule
+
 module blink
     (
         input clk,
@@ -257,24 +257,27 @@ endmodule
 module top (
         input sysclk_in,
         output BLINK_LED,
-        input SPI_MOSI,
-        output SPI_MISO,
-        input SPI_SCK,
-        input SPI_SSEL,
-        output PWMOUT0,
-        output PWMOUT1,
-        output RCSERVO0,
         input DIN0,
         input DIN1,
         input DIN2,
         input DIN3,
         input DIN4,
+        input SPI_MOSI,
+        output SPI_MISO,
+        input SPI_SCK,
+        input SPI_SSEL,
         output DOUT0,
         output DOUT1,
         output DOUT2,
         output DOUT3,
         output DOUT4,
         output DOUT5,
+        output PWMOUT0,
+        output PWMOUT1,
+        input VIN0,
+        input VIN1,
+        output STP0,
+        output DIR0,
         output STP1,
         output DIR1,
         output STP2,
@@ -317,7 +320,9 @@ module top (
     wire [15:0] setPoint0;
     wire [15:0] setPoint1;
 
-    // vins 0
+    // vins 2
+    wire [15:0] processVariable0;
+    wire [15:0] processVariable1;
 
     // joints 5
     wire signed [31:0] jointFreqCmd0;
@@ -358,7 +363,7 @@ module top (
     assign DOUT1 = rx_data[1];
     assign DOUT0 = rx_data[0];
 
-    // tx_data 200
+    // tx_data 232
     assign tx_data = {
         header_tx[7:0], header_tx[15:8], header_tx[23:16], header_tx[31:24],
         jointFeedback0[7:0], jointFeedback0[15:8], jointFeedback0[23:16], jointFeedback0[31:24],
@@ -366,6 +371,8 @@ module top (
         jointFeedback2[7:0], jointFeedback2[15:8], jointFeedback2[23:16], jointFeedback2[31:24],
         jointFeedback3[7:0], jointFeedback3[15:8], jointFeedback3[23:16], jointFeedback3[31:24],
         jointFeedback4[7:0], jointFeedback4[15:8], jointFeedback4[23:16], jointFeedback4[31:24],
+        processVariable0[7:0], processVariable0[15:8],
+        processVariable1[7:0], processVariable1[15:8],
         DIN7,
         DIN6,
         DIN5,
@@ -374,7 +381,7 @@ module top (
         DIN2,
         DIN1,
         DIN0,
-        40'd0
+        8'd0
     };
 
     // spi interface
@@ -400,15 +407,18 @@ module top (
         .pwm (PWMOUT1)
     );
 
+    // vin's
+    assign processVariable0 = 0;
+    assign processVariable1 = 0;
+
     // stepgen's
-    rcservo #(480000, 72000, 64) rcservo0 (
+    stepgen stepgen0 (
         .clk (sysclk),
         .jointFreqCmd (jointFreqCmd0),
         .jointFeedback (jointFeedback0),
-        .PWM (RCSERVO0)
+        .DIR (DIR0),
+        .STP (STP0)
     );
-
-    // stepgen's
     stepgen stepgen1 (
         .clk (sysclk),
         .jointFreqCmd (jointFreqCmd1),
@@ -437,5 +447,7 @@ module top (
         .DIR (DIR4),
         .STP (STP4)
     );
+
+    // stepgen's
 
 endmodule

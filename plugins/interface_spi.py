@@ -33,7 +33,7 @@ class Plugin():
     def ips(self):
         return """
 module spidev
-    #(parameter BUFFER_SIZE=8)
+    #(parameter BUFFER_SIZE=64)
     (
         input clk,
         input SPI_SCK,

@@ -21,7 +21,7 @@ class Plugin():
     def funcs(self):
         func_out = ["    // vin's"]
         for num, vin in enumerate(self.jdata['vin']):
-            func_out.append(f"    assign processVariable1{num} = 0;")
+            func_out.append(f"    assign processVariable{num} = 0;")
 
         return func_out
 

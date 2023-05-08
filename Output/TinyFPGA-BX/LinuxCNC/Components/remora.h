@@ -3,7 +3,8 @@
 
 #define JOINTS              5
 #define VARIABLE_OUTPUTS    2
-#define VARIABLE_INPUTS     0
+#define VARIABLE_INPUTS     2
+#define VARIABLES           2
 #define DIGITAL_OUTPUTS     8
 #define DIGITAL_INPUTS      8
 #define SPIBUFSIZE          30
@@ -15,7 +16,7 @@
 #define STEPBIT             22
 #define STEP_MASK           (1L<<STEPBIT)
 #define STEP_OFFSET         (1L<<(STEPBIT-1))
-#define PRU_BASEFREQ        40000
+#define PRU_BASEFREQ        PRU_BASEFREQ
 
 typedef union {
     struct {
@@ -24,7 +25,7 @@ typedef union {
     struct {
         int32_t header;
         int32_t jointFreqCmd[JOINTS];
-        int16_t setPoint[VARIABLES];
+        int16_t setPoint[VARIABLE_OUTPUTS];
         uint8_t jointEnable;
         uint8_t outputs;
     };
@@ -39,7 +40,7 @@ typedef union
     struct {
         int32_t header;
         int32_t jointFeedback[JOINTS];
-        int16_t processVariable[VARIABLES];
+        int16_t processVariable[VARIABLE_INPUTS];
         uint8_t inputs;
     };
 } rxData_t;
