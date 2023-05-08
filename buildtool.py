@@ -35,7 +35,7 @@ for plugin in plugins:
         pinlists[plugin] = plugins[plugin].pinlist()
 
 top_arguments = []
-for pname, pins in pinlists.items():
+for _pname, pins in pinlists.items():
     for pin in pins:
         top_arguments.append(f"{pin[2].lower()} {pin[0]}")
 
@@ -162,9 +162,9 @@ open(f"{LINUXCNC_PATH}/Components/remora.h", "w").write("\n".join(remora_data))
 # verilog
 top_data = []
 top_data.append("")
-top_data.append(f"/*")
+top_data.append("/*")
 top_data.append(f"    ######### {jdata['name']} #########")
-top_data.append(f"*/")
+top_data.append("*/")
 top_data.append("")
 
 
@@ -258,7 +258,7 @@ top_data.append("")
 top_data.append(f"    // rx_data {rx_data_size}")
 pos = data_size
 
-top_data.append(f"    wire [31:0] header_rx;")
+top_data.append("    wire [31:0] header_rx;")
 top_data.append(
     f"    assign header_rx = {{rx_data[{pos-3*8-1}:{pos-3*8-8}], rx_data[{pos-2*8-1}:{pos-2*8-8}], rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};"
 )
@@ -494,12 +494,12 @@ spitest_data.append("")
 
 
 spitest_data.append("joints = [")
-for num in range(joints):
+for _num in range(joints):
     spitest_data.append("    500,")
 spitest_data.append("]")
 spitest_data.append("")
 spitest_data.append("vouts = [")
-for num in range(vouts):
+for _num in range(vouts):
     spitest_data.append("    0xFFFF // 2,")
 spitest_data.append("]")
 spitest_data.append("")
