@@ -18,6 +18,7 @@ for path in glob.glob("plugins/*"):
     plugins[plugin] = vplugin.Plugin(jdata)
 
 
+verilog_files = []
 pinlists = {}
 
 osc_clock = False
@@ -27,8 +28,6 @@ if jdata['toolchain'] == "icestorm":
         pinlists["main"] = (("sysclk_in", jdata['clock']['pin'], "INPUT"),)
     else:
         pinlists["main"] = (("sysclk", jdata['clock']['pin'], "INPUT"),)
-
-
 
 
 if 'blink' in jdata:
@@ -109,122 +108,6 @@ if jdata['toolchain'] == "diamond":
     os.system(f"mkdir -p {PINS_PATH}")
 
 
-
-if jdata['toolchain'] == "icestorm":
-    # pins.pcf (icestorm)
-    pcf_data = []
-    for pname, pins in pinlists.items():
-        pcf_data.append(f"### {pname} ###")
-        for pin in pins:
-            pcf_data.append(f"set_io {pin[0]} {pin[1]}")
-        pcf_data.append("")
-    open(f"{PINS_PATH}/pins.pcf", "w").write("\n".join(pcf_data))
-
-    makefile_data = []
-    makefile_data.append("")
-    makefile_data.append(f"FAMILY  := {jdata['family']}")
-    makefile_data.append(f"TYPE    := {jdata['type']}")
-    makefile_data.append(f"PACKAGE := {jdata['package']}")
-    makefile_data.append("")
-    makefile_data.append("all: remorafpga.bin")
-    makefile_data.append("")
-    makefile_data.append("remorafpga.json: remorafpga.v")
-    verilog_files = "remorafpga.v"
-    if osc_clock:
-        verilog_files += " pll.v"
-    makefile_data.append(f"	yosys -q -l yosys.log -p 'synth_${{FAMILY}} -top top -json remorafpga.json' {verilog_files}")
-    makefile_data.append("")
-    makefile_data.append("remorafpga.asc: remorafpga.json pins.pcf")
-    makefile_data.append("	nextpnr-${FAMILY} -q -l nextpnr.log --${TYPE} --package ${PACKAGE} --json remorafpga.json --pcf pins.pcf --asc remorafpga.asc")
-    makefile_data.append("	@echo \"\"")
-    makefile_data.append("	@grep -B 1 \"%$$\" nextpnr.log")
-    makefile_data.append("	@echo \"\"")
-    makefile_data.append("")
-    makefile_data.append("remorafpga.bin: remorafpga.asc")
-    makefile_data.append("	icepack remorafpga.asc remorafpga.bin")
-    makefile_data.append("")
-    makefile_data.append("clean:")
-    makefile_data.append("	rm -rf remorafpga.bin remorafpga.asc remorafpga.json yosys.log nextpnr.log")
-    makefile_data.append("")
-    makefile_data.append("tinyprog: remorafpga.bin")
-    makefile_data.append("	tinyprog -p remorafpga.bin")
-    makefile_data.append("")
-
-
-    open(f"{FIRMWARE_PATH}/Makefile", "w").write("\n".join(makefile_data))
-
-
-elif jdata['toolchain'] == "diamond":
-    os.system(f"cp files/pif21.sty {FIRMWARE_PATH}/")
-
-    ldf_data = []
-    ldf_data.append('<?xml version="1.0" encoding="UTF-8"?>')
-    ldf_data.append(f'<BaliProject version="3.2" title="remorafpga" device="{jdata["type"]}" default_implementation="impl1">')
-    ldf_data.append('    <Options/>')
-    ldf_data.append('    <Implementation title="impl1" dir="impl1" description="impl1" synthesis="lse" default_strategy="Strategy1">')
-    ldf_data.append('        <Options def_top="top"/>')
-    ldf_data.append('        <Source name="impl1/source/remorafpga.v" type="Verilog" type_short="Verilog">')
-    ldf_data.append('            <Options/>')
-    ldf_data.append('        </Source>')
-    ldf_data.append('        <Source name="impl1/source/pins.lpf" type="Logic Preference" type_short="LPF">')
-    ldf_data.append('            <Options/>')
-    ldf_data.append('        </Source>')
-    ldf_data.append('    </Implementation>')
-    ldf_data.append('    <Strategy name="Strategy1" file="pif21.sty"/>')
-    ldf_data.append('</BaliProject>')
-    ldf_data.append('')
-    open(f"{FIRMWARE_PATH}/remorafpga.ldf", "w").write("\n".join(ldf_data))
-
-    # pins.lpf (diamond)
-    pcf_data = []
-    pcf_data.append('')
-    pcf_data.append('BLOCK RESETPATHS;')
-    pcf_data.append('BLOCK ASYNCPATHS;')
-    pcf_data.append('')
-    pcf_data.append('BANK 0 VCCIO 3.3 V;')
-    pcf_data.append('BANK 1 VCCIO 3.3 V;')
-    pcf_data.append('BANK 2 VCCIO 3.3 V;')
-    pcf_data.append('BANK 3 VCCIO 3.3 V;')
-    pcf_data.append('BANK 5 VCCIO 3.3 V;')
-    pcf_data.append('BANK 6 VCCIO 3.3 V;')
-    pcf_data.append('')
-    pcf_data.append('TRACEID "00111100" ;')
-    pcf_data.append('IOBUF ALLPORTS IO_TYPE=LVCMOS33 ;')
-    #pcf_data.append('SYSCONFIG JTAG_PORT=DISABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=ENABLE  MCCLK_FREQ=10.23 ;')
-    pcf_data.append('SYSCONFIG JTAG_PORT=ENABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=DISABLE  MCCLK_FREQ=10.23 ;')
-    pcf_data.append('USERCODE ASCII  "PIF2"      ;')
-    pcf_data.append('')
-    pcf_data.append('# LOCATE COMP "FDONE"           SITE "109";')
-    pcf_data.append('# LOCATE COMP "FINITn"          SITE "110";')
-    pcf_data.append('# LOCATE COMP "FPROGn"          SITE "119";')
-    pcf_data.append('# LOCATE COMP "FJTAGn"          SITE "120";')
-    pcf_data.append('# LOCATE COMP "FTMS"            SITE "130";')
-    pcf_data.append('# LOCATE COMP "FTCK"            SITE "131";')
-    pcf_data.append('# LOCATE COMP "FTDI"            SITE "136";')
-    pcf_data.append('# LOCATE COMP "FTDO"            SITE "137";')
-    pcf_data.append('')
-    pcf_data.append('LOCATE COMP "GSRn"              SITE "136";')
-    pcf_data.append('LOCATE COMP "LEDR"              SITE "112";')
-    pcf_data.append('LOCATE COMP "LEDG"              SITE "113";')
-    pcf_data.append('LOCATE COMP "SDA"               SITE "125";')
-    pcf_data.append('LOCATE COMP "SCL"               SITE "126";')
-    pcf_data.append('IOBUF  PORT "GSRn"              IO_TYPE=LVCMOS33 PULLMODE=UP;')
-    pcf_data.append('IOBUF  PORT "LEDR"              IO_TYPE=LVCMOS33 PULLMODE=DOWN;')
-    pcf_data.append('IOBUF  PORT "LEDG"              IO_TYPE=LVCMOS33 PULLMODE=DOWN;')
-    pcf_data.append('IOBUF  PORT "SCL"               IO_TYPE=LVCMOS33 PULLMODE=UP;')
-    pcf_data.append('IOBUF  PORT "SDA"               IO_TYPE=LVCMOS33 PULLMODE=UP;')
-    pcf_data.append('')
-    for pname, pins in pinlists.items():
-        pcf_data.append(f"### {pname} ###")
-        for pin in pins:
-            pcf_data.append(f'LOCATE COMP "{pin[0]}"           SITE "{pin[1]}";')
-        pcf_data.append("")
-    pcf_data.append('')
-    open(f"{PINS_PATH}/pins.lpf", "w").write("\n".join(pcf_data))
-
-
-
-
 remora_data = []
 remora_data.append("#ifndef REMORA_H")
 remora_data.append("#define REMORA_H")
@@ -291,32 +174,15 @@ top_data.append("")
 
 for plugin in plugins:
     if hasattr(plugins[plugin], "ips"):
-        top_data.append(plugins[plugin].ips())
+        for ipv in plugins[plugin].ips():
+            verilog_files.append(ipv)
+            os.system(f"cp -a plugins/{plugin}/{ipv}* {SOURCE_PATH}/{ipv}")
 
 
-if 'blink' in jdata:
-    top_data.append("module blink")
-    top_data.append("    (")
-    top_data.append("        input clk,")
-    top_data.append("        input [31:0] speed,")
-    top_data.append("        output led")
-    top_data.append("    );")
-    top_data.append("    reg rled;")
-    top_data.append("    reg [31:0] counter;")
-    top_data.append("    assign led = rled;")
-    top_data.append("    always @(posedge clk) begin")
-    top_data.append("        if (counter == 0) begin")
-    top_data.append("            counter <= speed;")
-    top_data.append("            rled <= ~rled;")
-    top_data.append("        end else begin")
-    top_data.append("            counter <= counter - 1;")
-    top_data.append("        end")
-    top_data.append("    end")
-    top_data.append("endmodule")
-    top_data.append("")
 
 if osc_clock:
     os.system(f"icepll -q -m -f '{SOURCE_PATH}/pll.v' -i {float(osc_clock) / 1000000} -o {float(jdata['clock']['speed']) / 1000000}")
+    verilog_files.append("pll.v")
 
 
 top_data.append("")
@@ -345,13 +211,14 @@ if jdata['toolchain'] == "diamond":
 
 
 if 'blink' in jdata:
-
     top_data.append("    blink blink1 (")
     top_data.append("        .clk (sysclk),")
     top_data.append(f"        .speed ({int(jdata['clock']['speed']) // 1 // 2}),")
     top_data.append("        .led (BLINK_LED)")
     top_data.append("    );")
     top_data.append("")
+    verilog_files.append("blink.v")
+    os.system(f"cp -a files/blink.v* {SOURCE_PATH}/blink.v")
 
 
 
@@ -461,6 +328,119 @@ top_data.append("")
 
 #print("\n".join(top_data))
 open(f"{SOURCE_PATH}/remorafpga.v", "w").write("\n".join(top_data))
+verilog_files.append("remorafpga.v")
+
+
+
+if jdata['toolchain'] == "icestorm":
+    # pins.pcf (icestorm)
+    pcf_data = []
+    for pname, pins in pinlists.items():
+        pcf_data.append(f"### {pname} ###")
+        for pin in pins:
+            pcf_data.append(f"set_io {pin[0]} {pin[1]}")
+        pcf_data.append("")
+    open(f"{PINS_PATH}/pins.pcf", "w").write("\n".join(pcf_data))
+
+    verilogs = " ".join(verilog_files)
+    makefile_data = []
+    makefile_data.append("")
+    makefile_data.append(f"FAMILY  := {jdata['family']}")
+    makefile_data.append(f"TYPE    := {jdata['type']}")
+    makefile_data.append(f"PACKAGE := {jdata['package']}")
+    makefile_data.append("")
+    makefile_data.append("all: remorafpga.bin")
+    makefile_data.append("")
+    makefile_data.append(f"remorafpga.json: {verilogs}")
+    makefile_data.append(f"	yosys -q -l yosys.log -p 'synth_${{FAMILY}} -top top -json remorafpga.json' {verilogs}")
+    makefile_data.append("")
+    makefile_data.append("remorafpga.asc: remorafpga.json pins.pcf")
+    makefile_data.append("	nextpnr-${FAMILY} -q -l nextpnr.log --${TYPE} --package ${PACKAGE} --json remorafpga.json --pcf pins.pcf --asc remorafpga.asc")
+    makefile_data.append("	@echo \"\"")
+    makefile_data.append("	@grep -B 1 \"%$$\" nextpnr.log")
+    makefile_data.append("	@echo \"\"")
+    makefile_data.append("")
+    makefile_data.append("remorafpga.bin: remorafpga.asc")
+    makefile_data.append("	icepack remorafpga.asc remorafpga.bin")
+    makefile_data.append("")
+    makefile_data.append("clean:")
+    makefile_data.append("	rm -rf remorafpga.bin remorafpga.asc remorafpga.json yosys.log nextpnr.log")
+    makefile_data.append("")
+    makefile_data.append("tinyprog: remorafpga.bin")
+    makefile_data.append("	tinyprog -p remorafpga.bin")
+    makefile_data.append("")
+    open(f"{FIRMWARE_PATH}/Makefile", "w").write("\n".join(makefile_data))
+
+
+elif jdata['toolchain'] == "diamond":
+    os.system(f"cp files/pif21.sty {FIRMWARE_PATH}/")
+
+    ldf_data = []
+    ldf_data.append('<?xml version="1.0" encoding="UTF-8"?>')
+    ldf_data.append(f'<BaliProject version="3.2" title="remorafpga" device="{jdata["type"]}" default_implementation="impl1">')
+    ldf_data.append('    <Options/>')
+    ldf_data.append('    <Implementation title="impl1" dir="impl1" description="impl1" synthesis="lse" default_strategy="Strategy1">')
+    ldf_data.append('        <Options def_top="top"/>')
+    for vfile in verilog_files:
+        ldf_data.append(f'        <Source name="impl1/source/{vfile}" type="Verilog" type_short="Verilog">')
+        ldf_data.append('            <Options/>')
+        ldf_data.append('        </Source>')
+    ldf_data.append('        <Source name="impl1/source/pins.lpf" type="Logic Preference" type_short="LPF">')
+    ldf_data.append('            <Options/>')
+    ldf_data.append('        </Source>')
+    ldf_data.append('    </Implementation>')
+    ldf_data.append('    <Strategy name="Strategy1" file="pif21.sty"/>')
+    ldf_data.append('</BaliProject>')
+    ldf_data.append('')
+    open(f"{FIRMWARE_PATH}/remorafpga.ldf", "w").write("\n".join(ldf_data))
+
+    # pins.lpf (diamond)
+    pcf_data = []
+    pcf_data.append('')
+    pcf_data.append('BLOCK RESETPATHS;')
+    pcf_data.append('BLOCK ASYNCPATHS;')
+    pcf_data.append('')
+    pcf_data.append('BANK 0 VCCIO 3.3 V;')
+    pcf_data.append('BANK 1 VCCIO 3.3 V;')
+    pcf_data.append('BANK 2 VCCIO 3.3 V;')
+    pcf_data.append('BANK 3 VCCIO 3.3 V;')
+    pcf_data.append('BANK 5 VCCIO 3.3 V;')
+    pcf_data.append('BANK 6 VCCIO 3.3 V;')
+    pcf_data.append('')
+    pcf_data.append('TRACEID "00111100" ;')
+    pcf_data.append('IOBUF ALLPORTS IO_TYPE=LVCMOS33 ;')
+    #pcf_data.append('SYSCONFIG JTAG_PORT=DISABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=ENABLE  MCCLK_FREQ=10.23 ;')
+    pcf_data.append('SYSCONFIG JTAG_PORT=ENABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=DISABLE  MCCLK_FREQ=10.23 ;')
+    pcf_data.append('USERCODE ASCII  "PIF2"      ;')
+    pcf_data.append('')
+    pcf_data.append('# LOCATE COMP "FDONE"           SITE "109";')
+    pcf_data.append('# LOCATE COMP "FINITn"          SITE "110";')
+    pcf_data.append('# LOCATE COMP "FPROGn"          SITE "119";')
+    pcf_data.append('# LOCATE COMP "FJTAGn"          SITE "120";')
+    pcf_data.append('# LOCATE COMP "FTMS"            SITE "130";')
+    pcf_data.append('# LOCATE COMP "FTCK"            SITE "131";')
+    pcf_data.append('# LOCATE COMP "FTDI"            SITE "136";')
+    pcf_data.append('# LOCATE COMP "FTDO"            SITE "137";')
+    pcf_data.append('')
+    pcf_data.append('LOCATE COMP "GSRn"              SITE "136";')
+    pcf_data.append('LOCATE COMP "LEDR"              SITE "112";')
+    pcf_data.append('LOCATE COMP "LEDG"              SITE "113";')
+    pcf_data.append('LOCATE COMP "SDA"               SITE "125";')
+    pcf_data.append('LOCATE COMP "SCL"               SITE "126";')
+    pcf_data.append('IOBUF  PORT "GSRn"              IO_TYPE=LVCMOS33 PULLMODE=UP;')
+    pcf_data.append('IOBUF  PORT "LEDR"              IO_TYPE=LVCMOS33 PULLMODE=DOWN;')
+    pcf_data.append('IOBUF  PORT "LEDG"              IO_TYPE=LVCMOS33 PULLMODE=DOWN;')
+    pcf_data.append('IOBUF  PORT "SCL"               IO_TYPE=LVCMOS33 PULLMODE=UP;')
+    pcf_data.append('IOBUF  PORT "SDA"               IO_TYPE=LVCMOS33 PULLMODE=UP;')
+    pcf_data.append('')
+    for pname, pins in pinlists.items():
+        pcf_data.append(f"### {pname} ###")
+        for pin in pins:
+            pcf_data.append(f'LOCATE COMP "{pin[0]}"           SITE "{pin[1]}";')
+        pcf_data.append("")
+    pcf_data.append('')
+    open(f"{PINS_PATH}/pins.lpf", "w").write("\n".join(pcf_data))
+
 
 
 
