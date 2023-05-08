@@ -12,7 +12,6 @@ jdata = json.loads(data)
 plugins = {}
 for path in glob.glob("plugins/*"):
     plugin = path.split("/")[1]
-    print(plugin)
     vplugin = importlib.import_module(
         f".{plugin}", f"plugins.{plugin}"
     )
@@ -86,6 +85,9 @@ data_size = max(tx_data_size, rx_data_size)
 
 # file structure
 OUTPUT_PATH=f"Output/{jdata['name'].replace(' ', '_').replace('/', '_')}"
+
+print(f"generating files in {OUTPUT_PATH}")
+
 FIRMWARE_PATH=f"{OUTPUT_PATH}/Firmware"
 SOURCE_PATH=f"{FIRMWARE_PATH}"
 PINS_PATH=f"{FIRMWARE_PATH}"
@@ -314,7 +316,7 @@ if 'blink' in jdata:
     top_data.append("")
 
 if osc_clock:
-    os.system(f"icepll -m -f '{SOURCE_PATH}/pll.v' -i {float(osc_clock) / 1000000} -o {float(jdata['clock']['speed']) / 1000000}")
+    os.system(f"icepll -q -m -f '{SOURCE_PATH}/pll.v' -i {float(osc_clock) / 1000000} -o {float(jdata['clock']['speed']) / 1000000}")
 
 
 top_data.append("")
