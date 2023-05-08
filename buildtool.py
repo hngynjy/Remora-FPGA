@@ -1,4 +1,3 @@
-
 import os
 import glob
 import importlib
@@ -12,9 +11,7 @@ jdata = json.loads(data)
 plugins = {}
 for path in glob.glob("plugins/*"):
     plugin = path.split("/")[1]
-    vplugin = importlib.import_module(
-        f".{plugin}", f"plugins.{plugin}"
-    )
+    vplugin = importlib.import_module(f".{plugin}", f"plugins.{plugin}")
     plugins[plugin] = vplugin.Plugin(jdata)
 
 
@@ -22,16 +19,16 @@ verilog_files = []
 pinlists = {}
 
 osc_clock = False
-if jdata['toolchain'] == "icestorm":
-    osc_clock = jdata['clock'].get('osc')
+if jdata["toolchain"] == "icestorm":
+    osc_clock = jdata["clock"].get("osc")
     if osc_clock:
-        pinlists["main"] = (("sysclk_in", jdata['clock']['pin'], "INPUT"),)
+        pinlists["main"] = (("sysclk_in", jdata["clock"]["pin"], "INPUT"),)
     else:
-        pinlists["main"] = (("sysclk", jdata['clock']['pin'], "INPUT"),)
+        pinlists["main"] = (("sysclk", jdata["clock"]["pin"], "INPUT"),)
 
 
-if 'blink' in jdata:
-    pinlists["blink"] = (("BLINK_LED", jdata['blink']['pin'], "OUTPUT"),)
+if "blink" in jdata:
+    pinlists["blink"] = (("BLINK_LED", jdata["blink"]["pin"], "OUTPUT"),)
 
 for plugin in plugins:
     if hasattr(plugins[plugin], "pinlist"):
@@ -83,14 +80,14 @@ data_size = max(tx_data_size, rx_data_size)
 
 
 # file structure
-OUTPUT_PATH=f"Output/{jdata['name'].replace(' ', '_').replace('/', '_')}"
+OUTPUT_PATH = f"Output/{jdata['name'].replace(' ', '_').replace('/', '_')}"
 
 print(f"generating files in {OUTPUT_PATH}")
 
-FIRMWARE_PATH=f"{OUTPUT_PATH}/Firmware"
-SOURCE_PATH=f"{FIRMWARE_PATH}"
-PINS_PATH=f"{FIRMWARE_PATH}"
-LINUXCNC_PATH=f"{OUTPUT_PATH}/LinuxCNC"
+FIRMWARE_PATH = f"{OUTPUT_PATH}/Firmware"
+SOURCE_PATH = f"{FIRMWARE_PATH}"
+PINS_PATH = f"{FIRMWARE_PATH}"
+LINUXCNC_PATH = f"{OUTPUT_PATH}/LinuxCNC"
 os.system(f"mkdir -p {OUTPUT_PATH}")
 os.system(f"mkdir -p {SOURCE_PATH}")
 os.system(f"mkdir -p {PINS_PATH}")
@@ -101,9 +98,9 @@ os.system(f"cp -a files/LinuxCNC/Components/* {LINUXCNC_PATH}/Components/")
 os.system(f"mkdir -p {LINUXCNC_PATH}/ConfigSamples/")
 os.system(f"cp -a files/LinuxCNC/ConfigSamples/* {LINUXCNC_PATH}/ConfigSamples/")
 
-if jdata['toolchain'] == "diamond":
-    SOURCE_PATH=f"{FIRMWARE_PATH}/impl1/source"
-    PINS_PATH=f"{FIRMWARE_PATH}/impl1/source"
+if jdata["toolchain"] == "diamond":
+    SOURCE_PATH = f"{FIRMWARE_PATH}/impl1/source"
+    PINS_PATH = f"{FIRMWARE_PATH}/impl1/source"
     os.system(f"mkdir -p {SOURCE_PATH}")
     os.system(f"mkdir -p {PINS_PATH}")
 
@@ -162,7 +159,6 @@ remora_data.append("")
 open(f"{LINUXCNC_PATH}/Components/remora.h", "w").write("\n".join(remora_data))
 
 
-
 # verilog
 top_data = []
 top_data.append("")
@@ -179,9 +175,10 @@ for plugin in plugins:
             os.system(f"cp -a plugins/{plugin}/{ipv}* {SOURCE_PATH}/{ipv}")
 
 
-
 if osc_clock:
-    os.system(f"icepll -q -m -f '{SOURCE_PATH}/pll.v' -i {float(osc_clock) / 1000000} -o {float(jdata['clock']['speed']) / 1000000}")
+    os.system(
+        f"icepll -q -m -f '{SOURCE_PATH}/pll.v' -i {float(osc_clock) / 1000000} -o {float(jdata['clock']['speed']) / 1000000}"
+    )
     verilog_files.append("pll.v")
 
 
@@ -199,9 +196,9 @@ if osc_clock:
     top_data.append("")
 
 
-if jdata['toolchain'] == "diamond":
+if jdata["toolchain"] == "diamond":
     top_data.append("    // Internal Oscillator")
-    top_data.append("    defparam OSCH_inst.NOM_FREQ = \"133.00\";")
+    top_data.append('    defparam OSCH_inst.NOM_FREQ = "133.00";')
     top_data.append("    OSCH OSCH_inst ( ")
     top_data.append("        .STDBY(1'b0),")
     top_data.append("        .OSC(sysclk),")
@@ -210,7 +207,7 @@ if jdata['toolchain'] == "diamond":
     top_data.append("")
 
 
-if 'blink' in jdata:
+if "blink" in jdata:
     top_data.append("    blink blink1 (")
     top_data.append("        .clk (sysclk),")
     top_data.append(f"        .speed ({int(jdata['clock']['speed']) // 1 // 2}),")
@@ -219,7 +216,6 @@ if 'blink' in jdata:
     top_data.append("")
     verilog_files.append("blink.v")
     os.system(f"cp -a files/blink.v* {SOURCE_PATH}/blink.v")
-
 
 
 top_data.append(f"    parameter BUFFER_SIZE = {data_size};")
@@ -263,15 +259,21 @@ top_data.append(f"    // rx_data {rx_data_size}")
 pos = data_size
 
 top_data.append(f"    wire [31:0] header_rx;")
-top_data.append(f"    assign header_rx = {{rx_data[{pos-3*8-1}:{pos-3*8-8}], rx_data[{pos-2*8-1}:{pos-2*8-8}], rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};")
+top_data.append(
+    f"    assign header_rx = {{rx_data[{pos-3*8-1}:{pos-3*8-8}], rx_data[{pos-2*8-1}:{pos-2*8-8}], rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};"
+)
 pos -= 32
 
 for num in range(joints):
-    top_data.append(f"    assign jointFreqCmd{num} = {{rx_data[{pos-3*8-1}:{pos-3*8-8}], rx_data[{pos-2*8-1}:{pos-2*8-8}], rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};")
+    top_data.append(
+        f"    assign jointFreqCmd{num} = {{rx_data[{pos-3*8-1}:{pos-3*8-8}], rx_data[{pos-2*8-1}:{pos-2*8-8}], rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};"
+    )
     pos -= 32
 
 for num in range(vouts):
-    top_data.append(f"    assign setPoint{num} = {{rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};")
+    top_data.append(
+        f"    assign setPoint{num} = {{rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};"
+    )
     pos -= 16
 
 for num in range(joints_en_total):
@@ -286,19 +288,23 @@ for num in range((douts_total + 7) // 8 * 8):
     if douts_total - num - 1 < douts:
         top_data.append(f"    assign DOUT{douts_total - num - 1} = rx_data[{pos-1}];")
     else:
-        top_data.append(f"    // assign DOUT{douts_total - num - 1} = rx_data[{pos-1}];")
+        top_data.append(
+            f"    // assign DOUT{douts_total - num - 1} = rx_data[{pos-1}];"
+        )
     pos -= 1
-
-
 
 
 top_data.append("")
 top_data.append(f"    // tx_data {tx_data_size}")
 top_data.append("    assign tx_data = {")
-top_data.append("        header_tx[7:0], header_tx[15:8], header_tx[23:16], header_tx[31:24],")
+top_data.append(
+    "        header_tx[7:0], header_tx[15:8], header_tx[23:16], header_tx[31:24],"
+)
 
 for num in range(joints):
-    top_data.append(f"        jointFeedback{num}[7:0], jointFeedback{num}[15:8], jointFeedback{num}[23:16], jointFeedback{num}[31:24],")
+    top_data.append(
+        f"        jointFeedback{num}[7:0], jointFeedback{num}[15:8], jointFeedback{num}[23:16], jointFeedback{num}[31:24],"
+    )
 
 for num in range(vins):
     top_data.append(f"        processVariable{num}[7:0], processVariable{num}[15:8],")
@@ -306,13 +312,12 @@ for num in range(vins):
 for num in range(dins_total):
     top_data.append(f"        DIN{dins_total - num - 1},")
 
-fill = (data_size - tx_data_size)
+fill = data_size - tx_data_size
 if fill > 0:
     top_data.append(f"        {fill}'d0")
 top_data.append("    };")
 
 top_data.append("")
-
 
 
 for plugin in plugins:
@@ -326,13 +331,12 @@ top_data.append("endmodule")
 top_data.append("")
 
 
-#print("\n".join(top_data))
+# print("\n".join(top_data))
 open(f"{SOURCE_PATH}/remorafpga.v", "w").write("\n".join(top_data))
 verilog_files.append("remorafpga.v")
 
 
-
-if jdata['toolchain'] == "icestorm":
+if jdata["toolchain"] == "icestorm":
     # pins.pcf (icestorm)
     pcf_data = []
     for pname, pins in pinlists.items():
@@ -352,19 +356,25 @@ if jdata['toolchain'] == "icestorm":
     makefile_data.append("all: remorafpga.bin")
     makefile_data.append("")
     makefile_data.append(f"remorafpga.json: {verilogs}")
-    makefile_data.append(f"	yosys -q -l yosys.log -p 'synth_${{FAMILY}} -top top -json remorafpga.json' {verilogs}")
+    makefile_data.append(
+        f"	yosys -q -l yosys.log -p 'synth_${{FAMILY}} -top top -json remorafpga.json' {verilogs}"
+    )
     makefile_data.append("")
     makefile_data.append("remorafpga.asc: remorafpga.json pins.pcf")
-    makefile_data.append("	nextpnr-${FAMILY} -q -l nextpnr.log --${TYPE} --package ${PACKAGE} --json remorafpga.json --pcf pins.pcf --asc remorafpga.asc")
-    makefile_data.append("	@echo \"\"")
-    makefile_data.append("	@grep -B 1 \"%$$\" nextpnr.log")
-    makefile_data.append("	@echo \"\"")
+    makefile_data.append(
+        "	nextpnr-${FAMILY} -q -l nextpnr.log --${TYPE} --package ${PACKAGE} --json remorafpga.json --pcf pins.pcf --asc remorafpga.asc"
+    )
+    makefile_data.append('	@echo ""')
+    makefile_data.append('	@grep -B 1 "%$$" nextpnr.log')
+    makefile_data.append('	@echo ""')
     makefile_data.append("")
     makefile_data.append("remorafpga.bin: remorafpga.asc")
     makefile_data.append("	icepack remorafpga.asc remorafpga.bin")
     makefile_data.append("")
     makefile_data.append("clean:")
-    makefile_data.append("	rm -rf remorafpga.bin remorafpga.asc remorafpga.json yosys.log nextpnr.log")
+    makefile_data.append(
+        "	rm -rf remorafpga.bin remorafpga.asc remorafpga.json yosys.log nextpnr.log"
+    )
     makefile_data.append("")
     makefile_data.append("tinyprog: remorafpga.bin")
     makefile_data.append("	tinyprog -p remorafpga.bin")
@@ -372,47 +382,57 @@ if jdata['toolchain'] == "icestorm":
     open(f"{FIRMWARE_PATH}/Makefile", "w").write("\n".join(makefile_data))
 
 
-elif jdata['toolchain'] == "diamond":
+elif jdata["toolchain"] == "diamond":
     os.system(f"cp files/pif21.sty {FIRMWARE_PATH}/")
 
     ldf_data = []
     ldf_data.append('<?xml version="1.0" encoding="UTF-8"?>')
-    ldf_data.append(f'<BaliProject version="3.2" title="remorafpga" device="{jdata["type"]}" default_implementation="impl1">')
-    ldf_data.append('    <Options/>')
-    ldf_data.append('    <Implementation title="impl1" dir="impl1" description="impl1" synthesis="lse" default_strategy="Strategy1">')
+    ldf_data.append(
+        f'<BaliProject version="3.2" title="remorafpga" device="{jdata["type"]}" default_implementation="impl1">'
+    )
+    ldf_data.append("    <Options/>")
+    ldf_data.append(
+        '    <Implementation title="impl1" dir="impl1" description="impl1" synthesis="lse" default_strategy="Strategy1">'
+    )
     ldf_data.append('        <Options def_top="top"/>')
     for vfile in verilog_files:
-        ldf_data.append(f'        <Source name="impl1/source/{vfile}" type="Verilog" type_short="Verilog">')
-        ldf_data.append('            <Options/>')
-        ldf_data.append('        </Source>')
-    ldf_data.append('        <Source name="impl1/source/pins.lpf" type="Logic Preference" type_short="LPF">')
-    ldf_data.append('            <Options/>')
-    ldf_data.append('        </Source>')
-    ldf_data.append('    </Implementation>')
+        ldf_data.append(
+            f'        <Source name="impl1/source/{vfile}" type="Verilog" type_short="Verilog">'
+        )
+        ldf_data.append("            <Options/>")
+        ldf_data.append("        </Source>")
+    ldf_data.append(
+        '        <Source name="impl1/source/pins.lpf" type="Logic Preference" type_short="LPF">'
+    )
+    ldf_data.append("            <Options/>")
+    ldf_data.append("        </Source>")
+    ldf_data.append("    </Implementation>")
     ldf_data.append('    <Strategy name="Strategy1" file="pif21.sty"/>')
-    ldf_data.append('</BaliProject>')
-    ldf_data.append('')
+    ldf_data.append("</BaliProject>")
+    ldf_data.append("")
     open(f"{FIRMWARE_PATH}/remorafpga.ldf", "w").write("\n".join(ldf_data))
 
     # pins.lpf (diamond)
     pcf_data = []
-    pcf_data.append('')
-    pcf_data.append('BLOCK RESETPATHS;')
-    pcf_data.append('BLOCK ASYNCPATHS;')
-    pcf_data.append('')
-    pcf_data.append('BANK 0 VCCIO 3.3 V;')
-    pcf_data.append('BANK 1 VCCIO 3.3 V;')
-    pcf_data.append('BANK 2 VCCIO 3.3 V;')
-    pcf_data.append('BANK 3 VCCIO 3.3 V;')
-    pcf_data.append('BANK 5 VCCIO 3.3 V;')
-    pcf_data.append('BANK 6 VCCIO 3.3 V;')
-    pcf_data.append('')
+    pcf_data.append("")
+    pcf_data.append("BLOCK RESETPATHS;")
+    pcf_data.append("BLOCK ASYNCPATHS;")
+    pcf_data.append("")
+    pcf_data.append("BANK 0 VCCIO 3.3 V;")
+    pcf_data.append("BANK 1 VCCIO 3.3 V;")
+    pcf_data.append("BANK 2 VCCIO 3.3 V;")
+    pcf_data.append("BANK 3 VCCIO 3.3 V;")
+    pcf_data.append("BANK 5 VCCIO 3.3 V;")
+    pcf_data.append("BANK 6 VCCIO 3.3 V;")
+    pcf_data.append("")
     pcf_data.append('TRACEID "00111100" ;')
-    pcf_data.append('IOBUF ALLPORTS IO_TYPE=LVCMOS33 ;')
-    #pcf_data.append('SYSCONFIG JTAG_PORT=DISABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=ENABLE  MCCLK_FREQ=10.23 ;')
-    pcf_data.append('SYSCONFIG JTAG_PORT=ENABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=DISABLE  MCCLK_FREQ=10.23 ;')
+    pcf_data.append("IOBUF ALLPORTS IO_TYPE=LVCMOS33 ;")
+    # pcf_data.append('SYSCONFIG JTAG_PORT=DISABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=ENABLE  MCCLK_FREQ=10.23 ;')
+    pcf_data.append(
+        "SYSCONFIG JTAG_PORT=ENABLE  SDM_PORT=PROGRAMN  I2C_PORT=DISABLE  SLAVE_SPI_PORT=DISABLE  MCCLK_FREQ=10.23 ;"
+    )
     pcf_data.append('USERCODE ASCII  "PIF2"      ;')
-    pcf_data.append('')
+    pcf_data.append("")
     pcf_data.append('# LOCATE COMP "FDONE"           SITE "109";')
     pcf_data.append('# LOCATE COMP "FINITn"          SITE "110";')
     pcf_data.append('# LOCATE COMP "FPROGn"          SITE "119";')
@@ -421,7 +441,7 @@ elif jdata['toolchain'] == "diamond":
     pcf_data.append('# LOCATE COMP "FTCK"            SITE "131";')
     pcf_data.append('# LOCATE COMP "FTDI"            SITE "136";')
     pcf_data.append('# LOCATE COMP "FTDO"            SITE "137";')
-    pcf_data.append('')
+    pcf_data.append("")
     pcf_data.append('LOCATE COMP "GSRn"              SITE "136";')
     pcf_data.append('LOCATE COMP "LEDR"              SITE "112";')
     pcf_data.append('LOCATE COMP "LEDG"              SITE "113";')
@@ -432,17 +452,14 @@ elif jdata['toolchain'] == "diamond":
     pcf_data.append('IOBUF  PORT "LEDG"              IO_TYPE=LVCMOS33 PULLMODE=DOWN;')
     pcf_data.append('IOBUF  PORT "SCL"               IO_TYPE=LVCMOS33 PULLMODE=UP;')
     pcf_data.append('IOBUF  PORT "SDA"               IO_TYPE=LVCMOS33 PULLMODE=UP;')
-    pcf_data.append('')
+    pcf_data.append("")
     for pname, pins in pinlists.items():
         pcf_data.append(f"### {pname} ###")
         for pin in pins:
             pcf_data.append(f'LOCATE COMP "{pin[0]}"           SITE "{pin[1]}";')
         pcf_data.append("")
-    pcf_data.append('')
+    pcf_data.append("")
     open(f"{PINS_PATH}/pins.lpf", "w").write("\n".join(pcf_data))
-
-
-
 
 
 spitest_data = []
@@ -557,16 +574,4 @@ spitest_data.append("")
 spitest_data.append("")
 
 
-
-
 open(f"{FIRMWARE_PATH}/spitest.py", "w").write("\n".join(spitest_data))
-
-
-
-
-
-
-
-
-
-

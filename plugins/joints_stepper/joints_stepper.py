@@ -1,35 +1,31 @@
-
-
-
-class Plugin():
-
+class Plugin:
     def __init__(self, jdata):
         self.jdata = jdata
 
     def pinlist(self):
         pinlist_out = []
-        for num, joint in enumerate(self.jdata['joints']):
-            if joint['type'] == "stepper":
-                pinlist_out.append((f"STP{num}", joint['pins']['step'], "OUTPUT"))
-                pinlist_out.append((f"DIR{num}", joint['pins']['dir'], "OUTPUT"))
-                if joint.get('cl'):
-                    pinlist_out.append((f"ENCA{num}", joint['pins']['enc_a'], "INPUT"))
-                    pinlist_out.append((f"ENCB{num}", joint['pins']['enc_b'], "INPUT"))
+        for num, joint in enumerate(self.jdata["joints"]):
+            if joint["type"] == "stepper":
+                pinlist_out.append((f"STP{num}", joint["pins"]["step"], "OUTPUT"))
+                pinlist_out.append((f"DIR{num}", joint["pins"]["dir"], "OUTPUT"))
+                if joint.get("cl"):
+                    pinlist_out.append((f"ENCA{num}", joint["pins"]["enc_a"], "INPUT"))
+                    pinlist_out.append((f"ENCB{num}", joint["pins"]["enc_b"], "INPUT"))
         return pinlist_out
 
     def joints(self):
         joints_out = 0
-        for num, joint in enumerate(self.jdata['joints']):
-            if joint['type'] == "stepper":
+        for num, joint in enumerate(self.jdata["joints"]):
+            if joint["type"] == "stepper":
                 joints_out += 1
         return joints_out
 
     def funcs(self):
         func_out = ["    // stepgen's"]
-        for num, joint in enumerate(self.jdata['joints']):
-            if joint['type'] == "stepper":
+        for num, joint in enumerate(self.jdata["joints"]):
+            if joint["type"] == "stepper":
 
-                if joint.get('cl'):
+                if joint.get("cl"):
                     func_out.append(f"    quad_encoder quad{num} (")
                     func_out.append("        .clk (sysclk),")
                     func_out.append(f"        .quadA (ENCA{num}),")
@@ -55,4 +51,3 @@ class Plugin():
 
     def ips(self):
         return ["quad_encoder.v", "stepgen.v"]
-        
