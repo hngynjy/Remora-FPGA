@@ -10,13 +10,13 @@ class Plugin:
 
     def vins(self):
         vins_out = 0
-        for num, vin in enumerate(self.jdata["vin"]):
+        for _num, _vin in enumerate(self.jdata["vin"]):
             vins_out += 1
         return vins_out
 
     def funcs(self):
         func_out = ["    // vin's"]
-        for num, vin in enumerate(self.jdata["vin"]):
+        for num, _vin in enumerate(self.jdata["vin"]):
             func_out.append(f"    assign processVariable{num} = 0;")
 
         return func_out

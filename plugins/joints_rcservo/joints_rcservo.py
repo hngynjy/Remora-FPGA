@@ -11,7 +11,7 @@ class Plugin:
 
     def joints(self):
         joints_out = 0
-        for num, joint in enumerate(self.jdata["joints"]):
+        for _num, joint in enumerate(self.jdata["joints"]):
             if joint["type"] == "rcservo":
                 joints_out += 1
         return joints_out

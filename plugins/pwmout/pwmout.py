@@ -11,7 +11,7 @@ class Plugin:
 
     def vouts(self):
         vouts_out = 0
-        for num, vout in enumerate(self.jdata["vout"]):
+        for _num, vout in enumerate(self.jdata["vout"]):
             if vout["type"] == "pwm":
                 vouts_out += 1
         return vouts_out
@@ -21,7 +21,7 @@ class Plugin:
         for num, vout in enumerate(self.jdata["vout"]):
             if vout["type"] == "pwm":
                 func_out.append(f"    pwm pwm{num} (")
-                func_out.append(f"        .clk (sysclk),")
+                func_out.append("        .clk (sysclk),")
                 func_out.append(f"        .dty (setPoint{num}),")
                 func_out.append(f"        .pwm (PWMOUT{num})")
                 func_out.append("    );")

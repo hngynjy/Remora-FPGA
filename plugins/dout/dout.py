@@ -10,6 +10,6 @@ class Plugin:
 
     def douts(self):
         douts_out = 0
-        for num, pwmout in enumerate(self.jdata["dout"]):
+        for _num, _pwmout in enumerate(self.jdata["dout"]):
             douts_out += 1
         return douts_out

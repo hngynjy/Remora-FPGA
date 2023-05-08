@@ -6,16 +6,16 @@ class Plugin:
         pinlist_out = []
         if self.jdata["interface"]["type"] == "spi":
             pinlist_out.append(
-                (f"SPI_MOSI", self.jdata["interface"]["pins"]["MOSI"], "INPUT")
+                ("SPI_MOSI", self.jdata["interface"]["pins"]["MOSI"], "INPUT")
             )
             pinlist_out.append(
-                (f"SPI_MISO", self.jdata["interface"]["pins"]["MISO"], "OUTPUT")
+                ("SPI_MISO", self.jdata["interface"]["pins"]["MISO"], "OUTPUT")
             )
             pinlist_out.append(
-                (f"SPI_SCK", self.jdata["interface"]["pins"]["SCK"], "INPUT")
+                ("SPI_SCK", self.jdata["interface"]["pins"]["SCK"], "INPUT")
             )
             pinlist_out.append(
-                (f"SPI_SSEL", self.jdata["interface"]["pins"]["SEL"], "INPUT")
+                ("SPI_SSEL", self.jdata["interface"]["pins"]["SEL"], "INPUT")
             )
         return pinlist_out
 
