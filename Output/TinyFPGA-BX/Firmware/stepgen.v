@@ -1,6 +1,7 @@
 module stepgen
     (
         input clk,
+        input jointEnable,
         input signed [31:0] jointFreqCmd,
         output signed [31:0] jointFeedback,
         output DIR,
@@ -15,17 +16,12 @@ module stepgen
     assign jointFeedback = jointFeedbackMem;
     always @ (posedge clk) begin
         if (DIR) begin
-            //if (jointFreqCmdAbs < jointFreqCmd / 2) begin
-            //    jointFreqCmdAbs = jointFreqCmdAbs+1;
-            //end else if (jointFreqCmdAbs > jointFreqCmd / 2) begin
-            //    jointFreqCmdAbs = jointFreqCmdAbs-1;
-            //end
             jointFreqCmdAbs = jointFreqCmd / 2;
         end else begin
             jointFreqCmdAbs = -jointFreqCmd / 2;
         end
         jointCounter <= jointCounter + 1;
-        if (jointFreqCmd != 0) begin
+        if (jointFreqCmd != 0 && jointEnable) begin
             if (jointCounter >= jointFreqCmdAbs) begin
                 step <= ~step;
                 jointCounter <= 32'b0;

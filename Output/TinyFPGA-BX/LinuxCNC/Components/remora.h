@@ -16,7 +16,7 @@
 #define STEPBIT             22
 #define STEP_MASK           (1L<<STEPBIT)
 #define STEP_OFFSET         (1L<<(STEPBIT-1))
-#define PRU_BASEFREQ        PRU_BASEFREQ
+#define PRU_BASEFREQ        48000000
 
 typedef union {
     struct {
@@ -30,7 +30,6 @@ typedef union {
         uint8_t outputs;
     };
 } txData_t;
-static txData_t txData;
 
 typedef union
 {
@@ -44,6 +43,5 @@ typedef union
         uint8_t inputs;
     };
 } rxData_t;
-static rxData_t rxData;
 
 #endif

@@ -106,14 +106,14 @@ module top (
     assign jointFreqCmd4 = {rx_data[55:48], rx_data[63:56], rx_data[71:64], rx_data[79:72]};
     assign setPoint0 = {rx_data[39:32], rx_data[47:40]};
     assign setPoint1 = {rx_data[23:16], rx_data[31:24]};
-    assign jointEnable0 = rx_data[15];
-    assign jointEnable1 = rx_data[14];
-    assign jointEnable2 = rx_data[13];
-    assign jointEnable3 = rx_data[12];
-    assign jointEnable4 = rx_data[11];
-    // assign jointEnable5 = rx_data[10];
-    // assign jointEnable6 = rx_data[9];
-    // assign jointEnable7 = rx_data[8];
+    // assign jointEnable7 = rx_data[15];
+    // assign jointEnable6 = rx_data[14];
+    // assign jointEnable5 = rx_data[13];
+    assign jointEnable4 = rx_data[12];
+    assign jointEnable3 = rx_data[11];
+    assign jointEnable2 = rx_data[10];
+    assign jointEnable1 = rx_data[9];
+    assign jointEnable0 = rx_data[8];
     // assign DOUT7 = rx_data[7];
     // assign DOUT6 = rx_data[6];
     assign DOUT5 = rx_data[5];
@@ -164,6 +164,7 @@ module top (
     // stepgen's
     stepgen stepgen0 (
         .clk (sysclk),
+        .jointEnable (jointEnable0),
         .jointFreqCmd (jointFreqCmd0),
         .jointFeedback (jointFeedback0),
         .DIR (DIR0),
@@ -171,6 +172,7 @@ module top (
     );
     stepgen stepgen1 (
         .clk (sysclk),
+        .jointEnable (jointEnable1),
         .jointFreqCmd (jointFreqCmd1),
         .jointFeedback (jointFeedback1),
         .DIR (DIR1),
@@ -178,6 +180,7 @@ module top (
     );
     stepgen stepgen2 (
         .clk (sysclk),
+        .jointEnable (jointEnable2),
         .jointFreqCmd (jointFreqCmd2),
         .jointFeedback (jointFeedback2),
         .DIR (DIR2),
@@ -185,6 +188,7 @@ module top (
     );
     stepgen stepgen3 (
         .clk (sysclk),
+        .jointEnable (jointEnable3),
         .jointFreqCmd (jointFreqCmd3),
         .jointFeedback (jointFeedback3),
         .DIR (DIR3),
@@ -192,6 +196,7 @@ module top (
     );
     stepgen stepgen4 (
         .clk (sysclk),
+        .jointEnable (jointEnable4),
         .jointFreqCmd (jointFreqCmd4),
         .jointFeedback (jointFeedback4),
         .DIR (DIR4),

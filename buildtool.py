@@ -131,7 +131,7 @@ remora_data.append("#define PRU_ESTOP           0x65737470")
 remora_data.append("#define STEPBIT             22")
 remora_data.append("#define STEP_MASK           (1L<<STEPBIT)")
 remora_data.append("#define STEP_OFFSET         (1L<<(STEPBIT-1))")
-remora_data.append("#define PRU_BASEFREQ        PRU_BASEFREQ")
+remora_data.append(f"#define PRU_BASEFREQ        {jdata['clock']['speed']}")
 remora_data.append("")
 remora_data.append("typedef union {")
 remora_data.append("    struct {")
@@ -145,7 +145,6 @@ remora_data.append("        uint8_t jointEnable;")
 remora_data.append("        uint8_t outputs;")
 remora_data.append("    };")
 remora_data.append("} txData_t;")
-remora_data.append("static txData_t txData;")
 remora_data.append("")
 remora_data.append("typedef union")
 remora_data.append("{")
@@ -159,7 +158,6 @@ remora_data.append("        int16_t processVariable[VARIABLE_INPUTS];")
 remora_data.append("        uint8_t inputs;")
 remora_data.append("    };")
 remora_data.append("} rxData_t;")
-remora_data.append("static rxData_t rxData;")
 remora_data.append("")
 remora_data.append("#endif")
 remora_data.append("")
@@ -308,11 +306,11 @@ for num in range(vouts):
     )
     pos -= 16
 
-for num in range(joints_en_total):
-    if num < joints:
-        top_data.append(f"    assign jointEnable{num} = rx_data[{pos-1}];")
+for num in range((joints_en_total + 7) // 8 * 8):
+    if joints_en_total - num - 1 < joints:
+        top_data.append(f"    assign jointEnable{joints_en_total - num - 1} = rx_data[{pos-1}];")
     else:
-        top_data.append(f"    // assign jointEnable{num} = rx_data[{pos-1}];")
+        top_data.append(f"    // assign jointEnable{joints_en_total - num - 1} = rx_data[{pos-1}];")
     pos -= 1
 
 

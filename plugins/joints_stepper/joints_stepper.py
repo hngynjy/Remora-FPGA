@@ -47,6 +47,7 @@ class Plugin:
                 else:
                     func_out.append(f"    stepgen stepgen{num} (")
                     func_out.append("        .clk (sysclk),")
+                    func_out.append(f"        .jointEnable (jointEnable{num}),")
                     func_out.append(f"        .jointFreqCmd (jointFreqCmd{num}),")
                     func_out.append(f"        .jointFeedback (jointFeedback{num}),")
                     func_out.append(f"        .DIR (DIR{num}),")

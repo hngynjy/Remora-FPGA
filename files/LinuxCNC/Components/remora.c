@@ -80,55 +80,14 @@ typedef struct {
 	float 			scale_recip[JOINTS];		// reciprocal value used for scaling
 	float			prev_cmd[JOINTS];
 	float			cmd_d[JOINTS];					// command derivative
-	hal_float_t 	*setPoint[VARIABLES];
-	hal_float_t 	*processVariable[VARIABLES];
+	hal_float_t 	*setPoint[VARIABLE_OUTPUTS];
+	hal_float_t 	*processVariable[VARIABLE_INPUTS];
 	hal_bit_t   	*outputs[DIGITAL_OUTPUTS];
 	hal_bit_t   	*inputs[DIGITAL_INPUTS];
 } data_t;
 
 static data_t *data;
-
-
-typedef union
-{
-  // this allow structured access to the outgoing SPI data without having to move it
-  // this is the same structure as the PRU rxData structure
-  struct
-  {
-    uint8_t txBuffer[SPIBUFSIZE];
-  };
-  struct
-  {
-	int32_t header;
-    int32_t jointFreqCmd[JOINTS];
-    float 	setPoint[VARIABLES];
-	uint8_t jointEnable;
-	uint8_t outputs;
-	uint8_t spare2;
-    uint8_t spare1;
-  };
-} txData_t;
-
 static txData_t txData;
-
-
-typedef union
-{
-  // this allow structured access to the incoming SPI data without having to move it
-  // this is the same structure as the PRU txData structure
-  struct
-  {
-    uint8_t rxBuffer[SPIBUFSIZE];
-  };
-  struct
-  {
-    int32_t header;
-    int32_t jointFeedback[JOINTS];
-    float 	processVariable[VARIABLES];
-    uint8_t inputs;
-  };
-} rxData_t;
-
 static rxData_t rxData;
 
 
@@ -336,14 +295,14 @@ This is throwing errors from axis.py for some reason...
 		data->maxaccel[n] = 1.0;
 	}
 
-	for (n = 0; n < VARIABLES; n++) {
-	// export pins
-
+	for (n = 0; n < VARIABLE_OUTPUTS; n++) {
 		retval = hal_pin_float_newf(HAL_IN, &(data->setPoint[n]),
 		        comp_id, "%s.SP.%01d", prefix, n);
 		if (retval < 0) goto error;
 		*(data->setPoint[n]) = 0.0;
+	}
 
+	for (n = 0; n < VARIABLE_INPUTS; n++) {
 		retval = hal_pin_float_newf(HAL_OUT, &(data->processVariable[n]),
 		        comp_id, "%s.PV.%01d", prefix, n);
 		if (retval < 0) goto error;
@@ -831,7 +790,7 @@ void spi_read()
 					}
 
 					// Feedback
-					for (i = 0; i < VARIABLES; i++)
+					for (i = 0; i < VARIABLE_INPUTS; i++)
 					{
 						*(data->processVariable[i]) = rxData.processVariable[i]; 
 					}
@@ -890,34 +849,28 @@ void spi_write()
 		txData.jointFreqCmd[i] = 48000000 / data->freq[i];
 	}
 
+    txData.jointEnable = 0;
 	for (i = 0; i < JOINTS; i++)
 	{
 		if (*(data->stepperEnable[i]) == 1)
 		{
 			txData.jointEnable |= (1 << i);		
 		}
-		else
-		{
-			txData.jointEnable &= ~(1 << i);	
-		}
 	}
 
 	// Set points
-	for (i = 0; i < VARIABLES; i++)
+	for (i = 0; i < VARIABLE_OUTPUTS; i++)
 	{
 		txData.setPoint[i] = *(data->setPoint[i]);
 	}
 
 	// Outputs
+    txData.outputs = 0;
 	for (i = 0; i < DIGITAL_OUTPUTS; i++)
 	{
 		if (*(data->outputs[i]) == 1)
 		{
 			txData.outputs |= (1 << i);		// output is high
-		}
-		else
-		{
-			txData.outputs &= ~(1 << i);	// output is low
 		}
 	}
 
