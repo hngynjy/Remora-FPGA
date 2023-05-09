@@ -6,11 +6,14 @@ class Plugin:
         pinlist_out = []
         for num, joint in enumerate(self.jdata["joints"]):
             if joint["type"] == "stepper":
+                if "enable" in joint["pins"]:
+                    pinlist_out.append((f"EN{num}", joint["pins"]["enable"], "OUTPUT"))
                 pinlist_out.append((f"STP{num}", joint["pins"]["step"], "OUTPUT"))
                 pinlist_out.append((f"DIR{num}", joint["pins"]["dir"], "OUTPUT"))
                 if joint.get("cl"):
                     pinlist_out.append((f"ENCA{num}", joint["pins"]["enc_a"], "INPUT"))
                     pinlist_out.append((f"ENCB{num}", joint["pins"]["enc_b"], "INPUT"))
+
         return pinlist_out
 
     def joints(self):
@@ -24,6 +27,9 @@ class Plugin:
         func_out = ["    // stepgen's"]
         for num, joint in enumerate(self.jdata["joints"]):
             if joint["type"] == "stepper":
+
+                if "enable" in joint["pins"]:
+                    func_out.append(f"    assign EN{num} = jointEnable{num};")
 
                 if joint.get("cl"):
                     func_out.append(f"    quad_encoder quad{num} (")
