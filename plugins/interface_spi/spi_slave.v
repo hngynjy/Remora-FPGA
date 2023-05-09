@@ -1,6 +1,6 @@
 
 module spi_slave
-    #(parameter BUFFER_SIZE=64)
+    #(parameter BUFFER_SIZE=64, parameter MSGID=32'h74697277)
     (
         input clk,
         input SPI_SCK,
@@ -9,7 +9,9 @@ module spi_slave
         input [BUFFER_SIZE-1:0] tx_data,
         output [BUFFER_SIZE-1:0] rx_data,
         output SPI_MISO
+        //output [15:0] counter
     );
+    //assign counter = bitcnt;
     reg[2:0] SCKr;  always @(posedge clk) SCKr <= {SCKr[1:0], SPI_SCK};
     wire SCK_risingedge = (SCKr[2:1]==2'b01);  // now we can detect SCK rising edges
     wire SCK_fallingedge = (SCKr[2:1]==2'b10);  // and falling edges
@@ -37,7 +39,7 @@ module spi_slave
     always @(posedge clk) byte_received <= SSEL_active && SCK_risingedge && (bitcnt == BUFFER_SIZE);
     always @(posedge clk) begin
         if (SSEL_endmessage) begin
-            if (byte_data_receive[BUFFER_SIZE-1:BUFFER_SIZE-32] == 32'h74697277) begin
+            if (byte_data_receive[BUFFER_SIZE-1:BUFFER_SIZE-32] == MSGID) begin
                 byte_data_received <= byte_data_receive;
             end
         end
