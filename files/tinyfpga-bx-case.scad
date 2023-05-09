@@ -94,8 +94,8 @@ rotate([180, 0, 0]) {
                 cube([58-2, 40-2, 1], center=true);
             }
         }
-        translate([0, 37, 8]) {
-            cube([36, 3, 10], center=true);
+        translate([0, 38.5, 8]) {
+            cube([37, 5, 10], center=true);
         }
     }
 

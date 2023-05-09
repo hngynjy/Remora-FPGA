@@ -8,6 +8,20 @@ module top (
         output ERROR_OUT,
         input VIN0,
         input VIN1,
+        input SPI_MOSI,
+        output SPI_MISO,
+        input SPI_SCK,
+        input SPI_SSEL,
+        output STP0,
+        output DIR0,
+        output STP1,
+        output DIR1,
+        output STP2,
+        output DIR2,
+        output STP3,
+        output DIR3,
+        output STP4,
+        output DIR4,
         output DOUT0,
         output DOUT1,
         output DOUT2,
@@ -19,28 +33,16 @@ module top (
         input DIN2,
         input DIN3,
         input DIN4,
-        output STP0,
-        output DIR0,
-        output STP1,
-        output DIR1,
-        output STP2,
-        output DIR2,
-        output STP3,
-        output DIR3,
-        output STP4,
-        output DIR4,
         output PWMOUT0,
         output PWMOUT1,
-        input SPI_MOSI,
-        output SPI_MISO,
-        input SPI_SCK,
-        input SPI_SSEL,
         output ENA
     );
 
 
-    wire ERROR = 0;
+    reg ESTOP = 0;
+    wire ERROR;
     wire INTERFACE_TIMEOUT;
+    assign ERROR = (INTERFACE_TIMEOUT | ESTOP);
     wire sysclk;
     wire locked;
     pll mypll(sysclk_in, sysclk, locked);
@@ -54,8 +56,8 @@ module top (
 
     reg signed [31:0] header_tx;
     always @(posedge sysclk) begin
-        if (ERROR) begin
-            header_tx = 32'h00000000;
+        if (ESTOP) begin
+            header_tx = 32'h65737470;
         end else begin
             header_tx = 32'h64617461;
         end
@@ -146,6 +148,19 @@ module top (
     assign processVariable0 = 0;
     assign processVariable1 = 0;
 
+    // spi interface
+    wire pkg_ok;
+    spi_slave #(BUFFER_SIZE) spi1 (
+        .clk (sysclk),
+        .SPI_SCK (SPI_SCK),
+        .SPI_SSEL (SPI_SSEL),
+        .SPI_MOSI (SPI_MOSI),
+        .SPI_MISO (SPI_MISO),
+        .rx_data (rx_data),
+        .tx_data (tx_data),
+        .pkg_timeout (INTERFACE_TIMEOUT)
+    );
+
     // stepgen's
     stepgen stepgen0 (
         .clk (sysclk),
@@ -183,6 +198,8 @@ module top (
         .STP (STP4)
     );
 
+    // rcservos's
+
     // pwm's
     pwm pwm0 (
         .clk (sysclk),
@@ -194,34 +211,5 @@ module top (
         .dty (setPoint1),
         .pwm (PWMOUT1)
     );
-
-    // spi interface
-    wire pkg_ok;
-    spi_slave #(BUFFER_SIZE) spi1 (
-        .clk (sysclk),
-        .SPI_SCK (SPI_SCK),
-        .SPI_SSEL (SPI_SSEL),
-        .SPI_MOSI (SPI_MOSI),
-        .SPI_MISO (SPI_MISO),
-        .rx_data (rx_data),
-        .tx_data (tx_data),
-        .pkg_ok (pkg_ok)
-    );
-
-    // rcservos's
-
-    // checking interface timeouts 
-    assign INTERFACE_TIMEOUT = (timeout_counter > 100000);
-    reg [31:0] timeout_counter = 0;
-    wire pkg_ok_risingedge = (pkg_ok==1);
-    always @(posedge sysclk) begin
-        if (pkg_ok_risingedge) begin
-            timeout_counter <= 0;
-        end else if (!INTERFACE_TIMEOUT) begin
-            timeout_counter <= timeout_counter + 1;
-        end
-    end
-
-    assign ERROR = INTERFACE_TIMEOUT;
 
 endmodule

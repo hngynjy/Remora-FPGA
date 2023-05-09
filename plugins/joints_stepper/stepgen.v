@@ -15,13 +15,12 @@ module stepgen
     assign jointFeedback = jointFeedbackMem;
     always @ (posedge clk) begin
         if (DIR) begin
-
-            if (jointFreqCmdAbs < jointFreqCmd / 2) begin
-                jointFreqCmdAbs = jointFreqCmdAbs+1;
-            end else if (jointFreqCmdAbs > jointFreqCmd / 2) begin
-                jointFreqCmdAbs = jointFreqCmdAbs-1;
-            end
-            //jointFreqCmdAbs = jointFreqCmd / 2;
+            //if (jointFreqCmdAbs < jointFreqCmd / 2) begin
+            //    jointFreqCmdAbs = jointFreqCmdAbs+1;
+            //end else if (jointFreqCmdAbs > jointFreqCmd / 2) begin
+            //    jointFreqCmdAbs = jointFreqCmdAbs-1;
+            //end
+            jointFreqCmdAbs = jointFreqCmd / 2;
         end else begin
             jointFreqCmdAbs = -jointFreqCmd / 2;
         end

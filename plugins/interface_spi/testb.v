@@ -11,7 +11,7 @@ module testb;
     reg SPI_SSEL = 1;
     reg DIN0 = 0;
     wire DOUT0;
-    wire pkg_ok;
+    wire pkg_timeout;
 
     //wire [15:0] counter;
     always #10 SPI_SCK = !SPI_SCK;
@@ -43,7 +43,7 @@ module testb;
         $display("(%d) rx_data = %h", (rx_data == 96'h17a17a17a17a17a17a17a17a), rx_data);
         $display("(%d) jointFreqCmd0 = %h", (jointFreqCmd0 == 32'ha1177aa1), jointFreqCmd0);
         $display("(%d) setPoint0 = %h", (setPoint0 == 32'h177a), setPoint0);
-        $display("pkg_ok = %h", pkg_ok);
+        $display("pkg_timeout = %h", pkg_timeout);
         $display("-------");
 
         #1000 $finish;
@@ -106,7 +106,7 @@ module testb;
         .SPI_MISO (SPI_MISO),
         .rx_data (rx_data),
         .tx_data (tx_data),
-        .pkg_ok (pkg_ok)
+        .pkg_timeout (pkg_timeout)
         //.counter (counter)
     );
 endmodule
