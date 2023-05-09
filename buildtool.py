@@ -42,8 +42,8 @@ for _pname, pins in pinlists.items():
 if "enable" in jdata:
     npins = len(jdata["enable"])
     if npins == 1:
-        top_arguments.append(f"output EN0")
-        pinlists["enable"] = (("EN0", jdata["enable"][0]["pin"], "OUTPUT"),)
+        top_arguments.append(f"output ENA")
+        pinlists["enable"] = (("ENA", jdata["enable"][0]["pin"], "OUTPUT"),)
 
 dins = 0
 for plugin in plugins:
@@ -242,7 +242,7 @@ if "enable" in jdata:
     npins = len(jdata["enable"])
     if npins == 1:
         jointEnablesStr = " || ".join(jointEnables)
-        top_data.append(f"    assign EN0 = ({jointEnablesStr});")
+        top_data.append(f"    assign ENA = ({jointEnablesStr});")
         top_data.append("")
 
 
