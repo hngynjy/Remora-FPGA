@@ -39,6 +39,13 @@ for _pname, pins in pinlists.items():
     for pin in pins:
         top_arguments.append(f"{pin[2].lower()} {pin[0]}")
 
+if "enable" in jdata:
+    npins = len(jdata["enable"])
+    if npins == 1:
+        print(jdata["enable"][0]["pin"])
+        top_arguments.append(f"output EN0")
+        pinlists["enable"] = (("EN0", jdata["enable"][0]["pin"], "OUTPUT"),)
+
 dins = 0
 for plugin in plugins:
     if hasattr(plugins[plugin], "dins"):
@@ -226,9 +233,18 @@ top_data.append(f"    wire[{data_size - 1}:0] tx_data;")
 top_data.append("    reg signed [31:0] header_tx = 32'h64617461;")
 top_data.append("")
 
+jointEnables = []
 for num in range(joints):
     top_data.append(f"    wire jointEnable{num};")
+    jointEnables.append(f"jointEnable{num}")
 top_data.append("")
+
+if "enable" in jdata:
+    npins = len(jdata["enable"])
+    if npins == 1:
+        jointEnablesStr = " || ".join(jointEnables)
+        top_data.append(f"    assign EN0 = ({jointEnablesStr});")
+        top_data.append("")
 
 
 if dins_total > dins:
