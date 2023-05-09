@@ -168,7 +168,6 @@ open(f"{LINUXCNC_PATH}/Components/remora.h", "w").write("\n".join(remora_data))
 
 # verilog
 top_data = []
-top_data.append("")
 top_data.append("/*")
 top_data.append(f"    ######### {jdata['name']} #########")
 top_data.append("*/")
