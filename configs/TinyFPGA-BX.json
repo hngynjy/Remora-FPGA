@@ -20,14 +20,15 @@
             "SEL":  "G1"
         }
     },
-    "blink": {
+    "____blink": {
         "pin": "B3"
     },
-    "enable": [
-        {
-            "pin": "G9"
-        }
-    ],
+    "error": {
+        "pin": "B3"
+    },
+    "enable": {
+        "pin": "G9"
+    },
     "dout": [
         {
             "pin": "D9"

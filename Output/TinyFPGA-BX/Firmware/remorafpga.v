@@ -6,7 +6,7 @@
 
 module top (
         input sysclk_in,
-        output BLINK_LED,
+        output ERROR_OUT,
         input VIN0,
         input VIN1,
         output DOUT0,
@@ -35,31 +35,40 @@ module top (
         input SPI_MOSI,
         output SPI_MISO,
         input SPI_SCK,
-        input SPI_SSEL
+        input SPI_SSEL,
+        output ENA
     );
 
 
+    wire ERROR = 0;
+    wire INTERFACE_TIMEOUT;
     wire sysclk;
     wire locked;
     pll mypll(sysclk_in, sysclk, locked);
 
-    blink blink1 (
-        .clk (sysclk),
-        .speed (24000000),
-        .led (BLINK_LED)
-    );
+    assign ERROR_OUT = ERROR;
 
     parameter BUFFER_SIZE = 240;
 
     wire[239:0] rx_data;
     wire[239:0] tx_data;
-    reg signed [31:0] header_tx = 32'h64617461;
+
+    reg signed [31:0] header_tx;
+    always @(posedge sysclk) begin
+        if (ERROR) begin
+            header_tx = 32'h00000000;
+        end else begin
+            header_tx = 32'h64617461;
+        end
+    end
 
     wire jointEnable0;
     wire jointEnable1;
     wire jointEnable2;
     wire jointEnable3;
     wire jointEnable4;
+
+    assign ENA = (jointEnable0 || jointEnable1 || jointEnable2 || jointEnable3 || jointEnable4) && ~ERROR;
 
     // fake din's to fit byte
     reg DIN5 = 0;
@@ -188,6 +197,7 @@ module top (
     );
 
     // spi interface
+    wire pkg_ok;
     spi_slave #(BUFFER_SIZE) spi1 (
         .clk (sysclk),
         .SPI_SCK (SPI_SCK),
@@ -195,9 +205,24 @@ module top (
         .SPI_MOSI (SPI_MOSI),
         .SPI_MISO (SPI_MISO),
         .rx_data (rx_data),
-        .tx_data (tx_data)
+        .tx_data (tx_data),
+        .pkg_ok (pkg_ok)
     );
 
-    // stepgen's
+    // rcservos's
+
+    // checking interface timeouts 
+    assign INTERFACE_TIMEOUT = (timeout_counter > 100000);
+    reg [31:0] timeout_counter = 0;
+    wire pkg_ok_risingedge = (pkg_ok==1);
+    always @(posedge sysclk) begin
+        if (pkg_ok_risingedge) begin
+            timeout_counter <= 0;
+        end else if (!INTERFACE_TIMEOUT) begin
+            timeout_counter <= timeout_counter + 1;
+        end
+    end
+
+    assign ERROR = INTERFACE_TIMEOUT;
 
 endmodule

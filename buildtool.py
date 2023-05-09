@@ -30,6 +30,9 @@ if jdata["toolchain"] == "icestorm":
 if "blink" in jdata:
     pinlists["blink"] = (("BLINK_LED", jdata["blink"]["pin"], "OUTPUT"),)
 
+if "error" in jdata:
+    pinlists["error"] = (("ERROR_OUT", jdata["error"]["pin"], "OUTPUT"),)
+
 for plugin in plugins:
     if hasattr(plugins[plugin], "pinlist"):
         pinlists[plugin] = plugins[plugin].pinlist()
@@ -40,10 +43,8 @@ for _pname, pins in pinlists.items():
         top_arguments.append(f"{pin[2].lower()} {pin[0]}")
 
 if "enable" in jdata:
-    npins = len(jdata["enable"])
-    if npins == 1:
-        top_arguments.append(f"output ENA")
-        pinlists["enable"] = (("ENA", jdata["enable"][0]["pin"], "OUTPUT"),)
+    top_arguments.append(f"output ENA")
+    pinlists["enable"] = (("ENA", jdata["enable"]["pin"], "OUTPUT"),)
 
 dins = 0
 for plugin in plugins:
@@ -195,6 +196,9 @@ top_data.append("    );")
 top_data.append("")
 top_data.append("")
 
+top_data.append("    wire ERROR = 0;")
+top_data.append("    wire INTERFACE_TIMEOUT;")
+
 if osc_clock:
     top_data.append("    wire sysclk;")
     top_data.append("    wire locked;")
@@ -224,12 +228,26 @@ if "blink" in jdata:
     os.system(f"cp -a files/blink.v* {SOURCE_PATH}/blink.v")
 
 
+if "error" in jdata:
+    top_data.append("    assign ERROR_OUT = ERROR;")
+    top_data.append("")
+
+
 top_data.append(f"    parameter BUFFER_SIZE = {data_size};")
 top_data.append("")
 
 top_data.append(f"    wire[{data_size - 1}:0] rx_data;")
 top_data.append(f"    wire[{data_size - 1}:0] tx_data;")
-top_data.append("    reg signed [31:0] header_tx = 32'h64617461;")
+top_data.append("")
+
+top_data.append("    reg signed [31:0] header_tx;")
+top_data.append("    always @(posedge sysclk) begin")
+top_data.append("        if (ERROR) begin")
+top_data.append("            header_tx = 32'h00000000;")
+top_data.append("        end else begin")
+top_data.append("            header_tx = 32'h64617461;")
+top_data.append("        end")
+top_data.append("    end")
 top_data.append("")
 
 jointEnables = []
@@ -239,11 +257,9 @@ for num in range(joints):
 top_data.append("")
 
 if "enable" in jdata:
-    npins = len(jdata["enable"])
-    if npins == 1:
-        jointEnablesStr = " || ".join(jointEnables)
-        top_data.append(f"    assign ENA = ({jointEnablesStr});")
-        top_data.append("")
+    jointEnablesStr = " || ".join(jointEnables)
+    top_data.append(f"    assign ENA = ({jointEnablesStr}) && ~ERROR;")
+    top_data.append("")
 
 
 if dins_total > dins:
@@ -341,6 +357,21 @@ for plugin in plugins:
         top_data.append("\n".join(funcs))
         top_data.append("")
 
+
+top_data.append("    // checking interface timeouts ")
+top_data.append("    assign INTERFACE_TIMEOUT = (timeout_counter > 100000);")
+top_data.append("    reg [31:0] timeout_counter = 0;")
+top_data.append("    wire pkg_ok_risingedge = (pkg_ok==1);")
+top_data.append("    always @(posedge sysclk) begin")
+top_data.append("        if (pkg_ok_risingedge) begin")
+top_data.append("            timeout_counter <= 0;")
+top_data.append("        end else if (!INTERFACE_TIMEOUT) begin")
+top_data.append("            timeout_counter <= timeout_counter + 1;")
+top_data.append("        end")
+top_data.append("    end")
+top_data.append("")
+top_data.append("    assign ERROR = INTERFACE_TIMEOUT;")
+top_data.append("")
 
 top_data.append("endmodule")
 top_data.append("")

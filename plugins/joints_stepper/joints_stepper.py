@@ -29,7 +29,7 @@ class Plugin:
             if joint["type"] == "stepper":
 
                 if "enable" in joint["pins"]:
-                    func_out.append(f"    assign EN{num} = jointEnable{num};")
+                    func_out.append(f"    assign EN{num} = jointEnable{num} && ~ERROR;")
 
                 if joint.get("cl"):
                     func_out.append(f"    quad_encoder quad{num} (")

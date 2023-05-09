@@ -8,7 +8,8 @@ module spi_slave
         input SPI_MOSI,
         input [BUFFER_SIZE-1:0] tx_data,
         output [BUFFER_SIZE-1:0] rx_data,
-        output SPI_MISO
+        output SPI_MISO,
+        output pkg_ok
         //output [15:0] counter
     );
     //assign counter = bitcnt;
@@ -24,6 +25,8 @@ module spi_slave
     reg[BUFFER_SIZE-1:0] byte_data_received;
     reg[BUFFER_SIZE-1:0] byte_data_receive;
     reg[BUFFER_SIZE-1:0] byte_data_sent;
+    reg [7:0] _pkg_ok = 0;
+    assign pkg_ok = _pkg_ok;
     assign rx_data = byte_data_received;
     always @(posedge clk)
     begin
@@ -41,6 +44,7 @@ module spi_slave
         if (SSEL_endmessage) begin
             if (byte_data_receive[BUFFER_SIZE-1:BUFFER_SIZE-32] == MSGID) begin
                 byte_data_received <= byte_data_receive;
+                _pkg_ok <= 1;
             end
         end
     end
@@ -49,6 +53,7 @@ module spi_slave
     begin
         if(SSEL_startmessage) begin
             byte_data_sent = tx_data;
+            _pkg_ok <= 0;
         end else begin
             if(SCK_fallingedge) begin
                 if(bitcnt==16'd0)

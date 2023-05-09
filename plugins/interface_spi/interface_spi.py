@@ -21,6 +21,7 @@ class Plugin:
 
     def funcs(self):
         func_out = ["    // spi interface"]
+        func_out.append("    wire pkg_ok;")
         func_out.append("    spi_slave #(BUFFER_SIZE) spi1 (")
         func_out.append("        .clk (sysclk),")
         func_out.append("        .SPI_SCK (SPI_SCK),")
@@ -28,7 +29,8 @@ class Plugin:
         func_out.append("        .SPI_MOSI (SPI_MOSI),")
         func_out.append("        .SPI_MISO (SPI_MISO),")
         func_out.append("        .rx_data (rx_data),")
-        func_out.append("        .tx_data (tx_data)")
+        func_out.append("        .tx_data (tx_data),")
+        func_out.append("        .pkg_ok (pkg_ok)")
         func_out.append("    );")
         return func_out
 

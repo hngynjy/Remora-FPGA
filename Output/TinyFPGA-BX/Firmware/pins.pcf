@@ -1,8 +1,8 @@
 ### main ###
 set_io sysclk_in B2
 
-### blink ###
-set_io BLINK_LED B3
+### error ###
+set_io ERROR_OUT B3
 
 ### vin ###
 set_io VIN0 A6
@@ -46,3 +46,6 @@ set_io SPI_SCK G7
 set_io SPI_SSEL G1
 
 ### joints_rcservo ###
+
+### enable ###
+set_io ENA G9

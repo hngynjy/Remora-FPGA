@@ -17,7 +17,7 @@ class Plugin:
         return joints_out
 
     def funcs(self):
-        func_out = ["    // stepgen's"]
+        func_out = ["    // rcservos's"]
         sysclk = int(self.jdata["clock"]["speed"])
         for num, joint in enumerate(self.jdata["joints"]):
             if joint["type"] == "rcservo":
