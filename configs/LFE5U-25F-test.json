@@ -1,0 +1,102 @@
+{
+    "name": "LFE5U-25F-test",
+    "toolchain": "icestorm",
+    "family": "ecp5",
+    "type": "25k",
+    "package": "CABGA256",
+    "clock": {
+        "speed": "100000000",
+        "pin": "A10"
+    },
+    "interface": {
+        "type": "spi",
+        "pins": {
+            "MOSI": "G14",
+            "MISO": "G13",
+            "SCK": "F12",
+            "SEL": "F13"
+        }
+    },
+    "dout": [
+        {
+            "pin": "P11"
+        },
+        {
+            "pin": "N11"
+        },
+        {
+            "pin": "M11"
+        },
+        {
+            "pin": "T13"
+        },
+        {
+            "pin": "R12"
+        },
+        {
+            "pin": "R13"
+        },
+        {
+            "pin": "R14"
+        },
+        {
+            "pin": "T14"
+        }
+    ],
+    "din": [
+        {
+            "pin": "C4"
+        },
+        {
+            "pin": "D4"
+        },
+        {
+            "pin": "E4"
+        },
+        {
+            "pin": "D3"
+        },
+        {
+            "pin": "E3"
+        },
+        {
+            "pin": "F4"
+        }
+    ],
+    "vout": [
+        {
+            "type": "pwm",
+            "pin": "D16"
+        },
+        {
+            "type": "pwm",
+            "pin": "C15"
+        }
+    ],
+    "joints": [
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "B15",
+                "dir": "C14"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "T15",
+                "dir": "P15"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "R15",
+                "dir": "P12"
+            }
+        }
+    ]
+}

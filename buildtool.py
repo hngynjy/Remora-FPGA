@@ -336,7 +336,65 @@ open(f"{SOURCE_PATH}/remorafpga.v", "w").write("\n".join(top_data))
 verilog_files.append("remorafpga.v")
 
 
-if jdata["toolchain"] == "icestorm":
+if jdata["toolchain"] == "icestorm" and jdata["family"] == "ecp5":
+
+    lpf_data = []
+    lpf_data.append("")
+
+    lpf_data.append("")
+    for pname, pins in pinlists.items():
+        lpf_data.append(f"### {pname} ###")
+        for pin in pins:
+            lpf_data.append(f'LOCATE COMP "{pin[0]}"           SITE "{pin[1]}";')
+            lpf_data.append(f'IOBUF PORT "{pin[0]}" IO_TYPE=LVCMOS33;')
+
+        lpf_data.append("")
+    lpf_data.append("")
+    open(f"{PINS_PATH}/pins.lpf", "w").write("\n".join(lpf_data))
+
+    verilogs = " ".join(verilog_files)
+    makefile_data = []
+    makefile_data.append("")
+    makefile_data.append(f"FAMILY  := {jdata['family']}")
+    makefile_data.append(f"TYPE    := {jdata['type']}")
+    makefile_data.append(f"PACKAGE := {jdata['package']}")
+    makefile_data.append("")
+
+    makefile_data.append("")
+    makefile_data.append("all: remorafpga.bit")
+    makefile_data.append("")
+    makefile_data.append(f"remorafpga.json: {verilogs}")
+    makefile_data.append(
+        f"	yosys -q -l yosys.log -p 'synth_${{FAMILY}} -top top -json remorafpga.json' {verilogs}"
+    )
+    makefile_data.append("")
+    makefile_data.append("remorafpga.config: remorafpga.json pins.lpf")
+    makefile_data.append(
+        "	nextpnr-${FAMILY} -q -l nextpnr.log --${TYPE} --package ${PACKAGE} --json remorafpga.json --lpf pins.lpf --textcfg remorafpga.config"
+    )
+    makefile_data.append('	@echo ""')
+    makefile_data.append('	@grep -B 1 "%$$" nextpnr.log')
+    makefile_data.append('	@echo ""')
+    makefile_data.append("")
+    makefile_data.append("remorafpga.bit: remorafpga.config")
+    makefile_data.append(
+        "	ecppack --svf remorafpga.svf remorafpga.config remorafpga.bit"
+    )
+    makefile_data.append("	")
+    makefile_data.append("remorafpga.svf: remorafpga.bit")
+    makefile_data.append("")
+    makefile_data.append("clean:")
+    makefile_data.append(
+        "	rm -rf remorafpga.bit remorafpga.svf remorafpga.config remorafpga.json yosys.log nextpnr.log"
+    )
+    makefile_data.append("")
+    makefile_data.append("tinyprog: remorafpga.bin")
+    makefile_data.append("	tinyprog -p remorafpga.bin")
+    makefile_data.append("")
+    open(f"{FIRMWARE_PATH}/Makefile", "w").write("\n".join(makefile_data))
+
+
+elif jdata["toolchain"] == "icestorm":
     # pins.pcf (icestorm)
     pcf_data = []
     for pname, pins in pinlists.items():
