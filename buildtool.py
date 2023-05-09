@@ -42,7 +42,6 @@ for _pname, pins in pinlists.items():
 if "enable" in jdata:
     npins = len(jdata["enable"])
     if npins == 1:
-        print(jdata["enable"][0]["pin"])
         top_arguments.append(f"output EN0")
         pinlists["enable"] = (("EN0", jdata["enable"][0]["pin"], "OUTPUT"),)
 
