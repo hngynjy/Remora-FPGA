@@ -22,3 +22,8 @@ mypy:
 	mypy buildtool.py plugins/*/*.py
 
 check: isort flake8 mypy
+
+schema: files/schema.svg
+
+files/schema.svg: files/schema.sh
+	files/schema.sh > files/schema.svg
