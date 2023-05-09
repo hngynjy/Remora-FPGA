@@ -43,7 +43,7 @@ for _pname, pins in pinlists.items():
         top_arguments.append(f"{pin[2].lower()} {pin[0]}")
 
 if "enable" in jdata:
-    top_arguments.append(f"output ENA")
+    top_arguments.append("output ENA")
     pinlists["enable"] = (("ENA", jdata["enable"]["pin"], "OUTPUT"),)
 
 dins = 0
