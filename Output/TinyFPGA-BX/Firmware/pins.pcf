@@ -8,26 +8,6 @@ set_io ERROR_OUT B3
 set_io VIN0 A6
 set_io VIN1 A7
 
-### interface_spi ###
-set_io SPI_MOSI G6
-set_io SPI_MISO H7
-set_io SPI_SCK G7
-set_io SPI_SSEL G1
-
-### joints_stepper ###
-set_io STP0 J1
-set_io DIR0 H1
-set_io STP1 G2
-set_io DIR1 E1
-set_io STP2 E2
-set_io DIR2 D1
-set_io STP3 D2
-set_io DIR3 C1
-set_io STP4 J9
-set_io DIR4 J3
-
-### joints_rcservo ###
-
 ### dout ###
 set_io DOUT0 D9
 set_io DOUT1 D8
@@ -43,9 +23,29 @@ set_io DIN2 A1
 set_io DIN3 A2
 set_io DIN4 J4
 
+### joints_stepper ###
+set_io STP0 J1
+set_io DIR0 H1
+set_io STP1 G2
+set_io DIR1 E1
+set_io STP2 E2
+set_io DIR2 D1
+set_io STP3 D2
+set_io DIR3 C1
+set_io STP4 J9
+set_io DIR4 J3
+
 ### pwmout ###
 set_io PWMOUT0 B7
 set_io PWMOUT1 B6
+
+### interface_spi ###
+set_io SPI_MOSI G6
+set_io SPI_MISO H7
+set_io SPI_SCK G7
+set_io SPI_SSEL G1
+
+### joints_rcservo ###
 
 ### enable ###
 set_io ENA G9

@@ -8,20 +8,6 @@ module top (
         output ERROR_OUT,
         input VIN0,
         input VIN1,
-        input SPI_MOSI,
-        output SPI_MISO,
-        input SPI_SCK,
-        input SPI_SSEL,
-        output STP0,
-        output DIR0,
-        output STP1,
-        output DIR1,
-        output STP2,
-        output DIR2,
-        output STP3,
-        output DIR3,
-        output STP4,
-        output DIR4,
         output DOUT0,
         output DOUT1,
         output DOUT2,
@@ -33,8 +19,22 @@ module top (
         input DIN2,
         input DIN3,
         input DIN4,
+        output STP0,
+        output DIR0,
+        output STP1,
+        output DIR1,
+        output STP2,
+        output DIR2,
+        output STP3,
+        output DIR3,
+        output STP4,
+        output DIR4,
         output PWMOUT0,
         output PWMOUT1,
+        input SPI_MOSI,
+        output SPI_MISO,
+        input SPI_SCK,
+        input SPI_SSEL,
         output ENA
     );
 
@@ -148,19 +148,6 @@ module top (
     assign processVariable0 = 0;
     assign processVariable1 = 0;
 
-    // spi interface
-    wire pkg_ok;
-    spi_slave #(BUFFER_SIZE) spi1 (
-        .clk (sysclk),
-        .SPI_SCK (SPI_SCK),
-        .SPI_SSEL (SPI_SSEL),
-        .SPI_MOSI (SPI_MOSI),
-        .SPI_MISO (SPI_MISO),
-        .rx_data (rx_data),
-        .tx_data (tx_data),
-        .pkg_timeout (INTERFACE_TIMEOUT)
-    );
-
     // stepgen's
     stepgen stepgen0 (
         .clk (sysclk),
@@ -203,8 +190,6 @@ module top (
         .STP (STP4)
     );
 
-    // rcservos's
-
     // pwm's
     pwm pwm0 (
         .clk (sysclk),
@@ -216,5 +201,20 @@ module top (
         .dty (setPoint1),
         .pwm (PWMOUT1)
     );
+
+    // spi interface
+    wire pkg_ok;
+    spi_slave #(BUFFER_SIZE) spi1 (
+        .clk (sysclk),
+        .SPI_SCK (SPI_SCK),
+        .SPI_SSEL (SPI_SSEL),
+        .SPI_MOSI (SPI_MOSI),
+        .SPI_MISO (SPI_MISO),
+        .rx_data (rx_data),
+        .tx_data (tx_data),
+        .pkg_timeout (INTERFACE_TIMEOUT)
+    );
+
+    // rcservos's
 
 endmodule

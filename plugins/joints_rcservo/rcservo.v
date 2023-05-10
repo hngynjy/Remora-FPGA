@@ -36,7 +36,7 @@ module rcservo
             end
         end
     end
-    reg pulse;
+    reg pulse = 0;
     assign PWM = pulse;
     reg [31:0] counter = 0;
     always @ (posedge clk) begin
