@@ -6,14 +6,14 @@
 module top (
         input sysclk_in,
         output ERROR_OUT,
-        input VIN0,
-        input VIN1,
         output DOUT0,
         output DOUT1,
         output DOUT2,
         output DOUT3,
         output DOUT4,
         output DOUT5,
+        input VIN0,
+        input VIN1,
         input DIN0,
         input DIN1,
         input DIN2,
@@ -144,9 +144,19 @@ module top (
         8'd0
     };
 
+
+
     // vin's
-    assign processVariable0 = 0;
-    assign processVariable1 = 0;
+    freq_counter #(48000000) freq_counter0 (
+        .clk (sysclk),
+        .frequency (processVariable0),
+        .SIGNAL (VIN0)
+    );
+    freq_counter #(48000000) freq_counter1 (
+        .clk (sysclk),
+        .frequency (processVariable1),
+        .SIGNAL (VIN1)
+    );
 
     // stepgen's
     stepgen stepgen0 (

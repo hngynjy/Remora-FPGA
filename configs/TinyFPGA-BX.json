@@ -78,9 +78,11 @@
     ],
     "vin": [
         {
+            "type": "frequency",
             "pin": "A6"
         },
         {
+            "type": "frequency",
             "pin": "A7"
         }
     ],

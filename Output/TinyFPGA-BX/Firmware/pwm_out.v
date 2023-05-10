@@ -5,8 +5,8 @@ module pwm
         input [BITS - 1 : 0] dty,
         output pwm
     );
-    reg rPwm;
-    reg [BITS - 1 : 0] rDuty;
+    reg rPwm = 0;
+    reg [BITS - 1 : 0] rDuty = 0;
     wire pwmNext;
     wire [BITS - 1 : 0] dutyNext;
     always @(posedge clk)

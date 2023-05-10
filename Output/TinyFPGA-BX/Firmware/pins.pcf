@@ -5,8 +5,6 @@ set_io sysclk_in B2
 set_io ERROR_OUT B3
 
 ### vin ###
-set_io VIN0 A6
-set_io VIN1 A7
 
 ### dout ###
 set_io DOUT0 D9
@@ -15,6 +13,10 @@ set_io DOUT2 C9
 set_io DOUT3 A9
 set_io DOUT4 B8
 set_io DOUT5 A8
+
+### freq_counter ###
+set_io VIN0 A6
+set_io VIN1 A7
 
 ### din ###
 set_io DIN0 C2
