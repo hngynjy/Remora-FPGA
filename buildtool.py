@@ -131,7 +131,15 @@ remora_data.append("#define PRU_ESTOP           0x65737470")
 remora_data.append("#define STEPBIT             22")
 remora_data.append("#define STEP_MASK           (1L<<STEPBIT)")
 remora_data.append("#define STEP_OFFSET         (1L<<(STEPBIT-1))")
-remora_data.append(f"#define PRU_BASEFREQ        {jdata['clock']['speed']}")
+remora_data.append(f"#define PRU_BASEFREQ        120000")
+remora_data.append(f"#define PRU_OSC             {jdata['clock']['speed']}")
+remora_data.append("")
+# TODO: move into plugin
+for num, joint in enumerate(jdata["joints"]):
+    if joint["type"] == "stepper":
+        if joint.get("cl", False):
+            enc_scale = joint.get("enc_scale", 1)
+            remora_data.append(f"#define ENC_SCALE{num}          {enc_scale}")
 remora_data.append("")
 remora_data.append("typedef union {")
 remora_data.append("    struct {")
@@ -648,7 +656,15 @@ spitest_data.append("")
 spitest_data.append("if header == 0x64617461:")
 spitest_data.append("    print(f'PRU_DATA: 0x{header:x}')")
 spitest_data.append("    for num in range(JOINTS):")
-spitest_data.append("        print(f' Joint({num}): {jointFeedback[num]}')")
+
+enc_scale = 1
+for num, joint in enumerate(jdata["joints"]):
+    if joint["type"] == "stepper":
+        if joint.get("cl", False):
+            enc_scale = joint.get("enc_scale", 1)
+spitest_data.append(f"        print(f' Joint({{num}}): {{jointFeedback[num]}} // {enc_scale}')")
+
+
 spitest_data.append("    for num in range(VINS):")
 spitest_data.append("        print(f' Var({num}): {processVariable[num]}')")
 spitest_data.append("    print(f'inputs {inputs:08b}')")
@@ -662,3 +678,160 @@ spitest_data.append("")
 
 
 open(f"{FIRMWARE_PATH}/spitest.py", "w").write("\n".join(spitest_data))
+
+
+
+cfgini_data = []
+
+
+axis_names = ["X", "Y", "Z", "A", "B", "C"]
+axis_str = ""
+axis_str2 = ""
+for num in range(min(joints, len(axis_names))):
+    axis_str += axis_names[num]
+    axis_str2 += " " + axis_names[num]
+
+
+cfgini_data.append(f"""
+# Basic LinuxCNC config for testing of Remora firmware
+
+[EMC]
+MACHINE = Remora-{axis_str}
+DEBUG = 0
+VERSION = 1.1
+
+[DISPLAY]
+DISPLAY = axis
+EDITOR = gedit
+POSITION_OFFSET = RELATIVE
+POSITION_FEEDBACK = ACTUAL
+ARCDIVISION = 64
+GRIDS = 10mm 20mm 50mm 100mm
+MAX_FEED_OVERRIDE = 1.2
+MIN_SPINDLE_OVERRIDE = 0.5
+MAX_SPINDLE_OVERRIDE = 1.2
+DEFAULT_LINEAR_VELOCITY = 50.00
+MIN_LINEAR_VELOCITY = 0
+MAX_LINEAR_VELOCITY = 200.00
+DEFAULT_ANGULAR_VELOCITY = 36.00
+MIN_ANGULAR_VELOCITY = 0
+MAX_ANGULAR_VELOCITY = 45.00
+INTRO_GRAPHIC = linuxcnc.gif
+INTRO_TIME = 5
+PROGRAM_PREFIX = ~/linuxcnc/nc_files
+INCREMENTS = 50mm 10mm 5mm 1mm .5mm .1mm .05mm .01mm
+
+[KINS]
+JOINTS = {joints}
+#KINEMATICS =trivkins coordinates={axis_str} kinstype=BOTH
+KINEMATICS =trivkins coordinates={axis_str}
+
+[FILTER]
+PROGRAM_EXTENSION = .py Python Script
+py = python
+
+[TASK]
+TASK = milltask
+CYCLE_TIME = 0.010
+
+[RS274NGC]
+PARAMETER_FILE = linuxcnc.var
+
+[EMCMOT]
+EMCMOT = motmod
+COMM_TIMEOUT = 1.0
+COMM_WAIT = 0.010
+BASE_PERIOD = 0
+SERVO_PERIOD = 1000000
+
+[HAL]
+HALFILE = remora.hal
+POSTGUI_HALFILE = postgui_call_list.hal
+
+[TRAJ]
+COORDINATES =  {axis_str2}
+LINEAR_UNITS = mm
+ANGULAR_UNITS = degree
+CYCLE_TIME = 0.010
+DEFAULT_LINEAR_VELOCITY = 50.00
+MAX_LINEAR_VELOCITY = 200.00
+NO_FORCE_HOMING = 1 
+
+[EMCIO]
+EMCIO = io
+CYCLE_TIME = 0.100
+TOOL_TABLE = tool.tbl
+
+""")
+
+
+for num in range(min(joints, len(axis_names))):
+    cfgini_data.append(f"""[AXIS_{axis_names[num]}]
+MAX_VELOCITY = 450
+MAX_ACCELERATION = 750.0
+MIN_LIMIT = -1300
+MAX_LIMIT = 1300
+
+[JOINT_{num}]
+TYPE = LINEAR
+HOME = 0.0
+MIN_LIMIT = -1300
+MAX_LIMIT = 1300
+MAX_VELOCITY = 450.0
+MAX_ACCELERATION = 750.0
+STEPGEN_MAXACCEL = 2000.0
+SCALE = 800.0
+FERROR = 2
+MIN_FERROR = 2.0
+HOME_OFFSET = 0.0
+HOME_SEARCH_VEL = 0
+HOME_LATCH_VEL = 0
+HOME_SEQUENCE = 0
+
+""")
+
+
+open(f"{LINUXCNC_PATH}/ConfigSamples/remora.ini", "w").write("\n".join(cfgini_data))
+print(f"{LINUXCNC_PATH}/ConfigSamples/remora.ini")
+
+
+
+
+
+cfghal_data = []
+cfghal_data.append(f"""
+# load the realtime components
+
+	loadrt [KINS]KINEMATICS
+	loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS
+	loadrt remora
+
+# estop loopback, SPI comms enable and feedback
+	net user-enable-out 	<= iocontrol.0.user-enable-out		=> remora.SPI-enable
+	net user-request-enable <= iocontrol.0.user-request-enable	=> remora.SPI-reset
+	net remora-status 	<= remora.SPI-status 			=> iocontrol.0.emc-enable-in
+
+# add the remora and motion functions to threads
+	addf remora.read servo-thread
+	addf motion-command-handler servo-thread
+	addf motion-controller servo-thread
+	addf remora.update-freq servo-thread
+	addf remora.write servo-thread
+
+""")
+
+for num in range(min(joints, len(axis_names))):
+    cfghal_data.append(f"""# Joint {num} setup
+
+	setp remora.joint.{num}.scale 		[JOINT_{num}]SCALE
+	setp remora.joint.{num}.maxaccel 	[JOINT_{num}]STEPGEN_MAXACCEL
+
+	net {axis_names[num].lower()}pos-cmd 		<= joint.{num}.motor-pos-cmd 	=> remora.joint.{num}.pos-cmd  
+	net j{num}pos-fb 		<= remora.joint.{num}.pos-fb 	=> joint.{num}.motor-pos-fb
+	net j{num}enable 		<= joint.{num}.amp-enable-out 	=> remora.joint.{num}.enable
+
+""")
+
+open(f"{LINUXCNC_PATH}/ConfigSamples/remora.hal", "w").write("\n".join(cfghal_data))
+print(f"{LINUXCNC_PATH}/ConfigSamples/remora.hal")
+

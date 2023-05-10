@@ -21,7 +21,7 @@ module stepgen
             jointFreqCmdAbs = -jointFreqCmd / 2;
         end
         jointCounter <= jointCounter + 1;
-        if (jointFreqCmd != 0 && jointEnable) begin
+        if (jointFreqCmd != 0 && jointEnable == 1) begin
             if (jointCounter >= jointFreqCmdAbs) begin
                 step <= ~step;
                 jointCounter <= 32'b0;
@@ -40,6 +40,7 @@ endmodule
 module stepgen_nf
     (
         input clk,
+        input jointEnable,
         input signed [31:0] jointFreqCmd,
         output DIR,
         output STP
@@ -56,7 +57,7 @@ module stepgen_nf
             jointFreqCmdAbs = -jointFreqCmd / 2;
         end
         jointCounter <= jointCounter + 1;
-        if (jointFreqCmd != 0) begin
+        if (jointFreqCmd != 0 && jointEnable == 1) begin
             if (jointCounter >= jointFreqCmdAbs) begin
                 step <= ~step;
                 jointCounter <= 32'b0;

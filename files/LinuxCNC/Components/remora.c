@@ -777,6 +777,34 @@ void spi_read()
 						
 						    rxData.jointFeedback[i] *= 4194304;
 
+#ifdef ENC_SCALE0
+if (i == 0) {
+	rxData.jointFeedback[i] /= ENC_SCALE0;
+}
+#endif
+#ifdef ENC_SCALE1
+if (i == 1) {
+	rxData.jointFeedback[i] /= ENC_SCALE1;
+}
+#endif
+#ifdef ENC_SCALE2
+if (i == 2) {
+	rxData.jointFeedback[i] /= ENC_SCALE2;
+}
+#endif
+#ifdef ENC_SCALE3
+if (i == 3) {
+	rxData.jointFeedback[i] /= ENC_SCALE3;
+}
+#endif
+#ifdef ENC_SCALE4
+if (i == 4) {
+	rxData.jointFeedback[i] /= ENC_SCALE4;
+}
+#endif
+						    
+						    
+
 						
 						accum_diff = rxData.jointFeedback[i] - old_count[i];
 						old_count[i] = rxData.jointFeedback[i];
@@ -846,7 +874,7 @@ void spi_write()
 	// Joint frequency commands
 	for (i = 0; i < JOINTS; i++)
 	{
-		txData.jointFreqCmd[i] = 48000000 / data->freq[i];
+		txData.jointFreqCmd[i] = PRU_OSC / data->freq[i];
 	}
 
     txData.jointEnable = 0;

@@ -22,7 +22,7 @@ class Plugin:
     def funcs(self):
         func_out = ["    // spi interface"]
         func_out.append("    wire pkg_ok;")
-        func_out.append("    spi_slave #(BUFFER_SIZE) spi1 (")
+        func_out.append(f"    spi_slave #(BUFFER_SIZE, 32'h74697277, {self.jdata['clock']['speed']}) spi1 (")
         func_out.append("        .clk (sysclk),")
         func_out.append("        .SPI_SCK (SPI_SCK),")
         func_out.append("        .SPI_SSEL (SPI_SSEL),")

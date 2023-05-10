@@ -1,5 +1,6 @@
 {
     "name": "ICE40HX8K-EVB",
+    "info": "5axis-BOB",
     "toolchain": "icestorm",
     "family": "ice40",
     "type": "hx8k",
@@ -17,148 +18,106 @@
             "SEL": "L11"
         }
     },
+    "blink": {
+        "pin": "M12"
+    },
+    "error": {
+        "pin": "R16"
+    },
+    "enable": {
+        "pin": "F5"
+    },
     "dout": [
         {
-            "pin": "C14"
+            "pin": "F4"
         },
         {
-            "pin": "B15"
+            "pin": "D2"
         },
         {
-            "pin": "D13"
+            "pin": "G5"
         },
         {
-            "pin": "B14"
-        },
-        {
-            "pin": "C12"
-        },
-        {
-            "pin": "E11"
-        },
-        {
-            "pin": "C13"
-        },
-        {
-            "pin": "A16"
+            "pin": "D1"
         }
     ],
     "din": [
         {
-            "pin": "E10"
+            "pin": "H6"
         },
         {
-            "pin": "C11"
+            "pin": "F2"
         },
         {
-            "pin": "D11"
+            "pin": "H3"
         },
         {
-            "pin": "B12"
+            "pin": "F3"
         },
         {
-            "pin": "B10"
-        },
-        {
-            "pin": "B11"
+            "pin": "B1"
         }
     ],
     "vout": [
         {
             "type": "pwm",
-            "pin": "E4"
+            "pin": "J2"
         },
         {
             "type": "pwm",
-            "pin": "B2"
+            "pin": "H5"
+        }
+    ],
+    "vin": [
+        {
+            "pin": "E2"
         },
         {
-            "type": "pwm",
-            "pin": "F5"
-        },
-        {
-            "type": "pwm",
-            "pin": "B1"
-        },
-        {
-            "type": "pwm",
-            "pin": "C1"
-        },
-        {
-            "type": "pwm",
-            "pin": "C2"
+            "pin": "G3"
         }
     ],
     "joints": [
         {
             "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "H1",
+                "dir": "G1"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "J5",
+                "dir": "H2"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "J4",
+                "dir": "G2"
+            }
+        },
+        {
+            "type": "stepper",
             "cl": true,
+            "enc_scale": "2",
             "pins": {
-                "step": "J2",
-                "dir": "H1",
-                "enc_a": "A15",
-                "enc_b": "B13"
-            },
-            "enc_scale": "* 8 / 10"
-        },
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "G1",
-                "dir": "J5"
+                "step": "H4",
+                "dir": "F1",
+                "enc_a": "G4",
+                "enc_b": "E3"
             }
         },
         {
             "type": "stepper",
             "cl": false,
             "pins": {
-                "step": "H2",
-                "dir": "J4"
-            }
-        },
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "G2",
-                "dir": "H4"
-            }
-        },
-
-
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "F2",
-                "dir": "H3"
-            }
-        },
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "F3",
-                "dir": "G3"
-            }
-        },
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "E2",
-                "dir": "H5"
-            }
-        },
-
-
-        {
-            "type": "stepper",
-            "cl": false,
-            "pins": {
-                "step": "F1",
-                "dir": "H6"
+                "step": "C2",
+                "dir": "C1"
             }
         }
     ]
