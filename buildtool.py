@@ -74,6 +74,11 @@ for plugin in plugins:
 joints_en_total = (joints + 7) // 8 * 8
 douts_total = (douts + 7) // 8 * 8
 dins_total = (dins + 7) // 8 * 8
+
+douts_total = max(douts_total, 8)
+dins_total = max(dins_total, 8)
+
+
 tx_data_size = 32
 tx_data_size += joints * 32
 tx_data_size += vins * 16
@@ -116,13 +121,15 @@ remora_data = []
 remora_data.append("#ifndef REMORA_H")
 remora_data.append("#define REMORA_H")
 remora_data.append("")
-remora_data.append(f"#define JOINTS              {joints}")
-remora_data.append(f"#define VARIABLE_OUTPUTS    {vouts}")
-remora_data.append(f"#define VARIABLE_INPUTS     {vins}")
-remora_data.append(f"#define VARIABLES           {max(vins, vouts)}")
-remora_data.append(f"#define DIGITAL_OUTPUTS     {douts_total}")
-remora_data.append(f"#define DIGITAL_INPUTS      {dins_total}")
-remora_data.append(f"#define SPIBUFSIZE          {data_size // 8}")
+remora_data.append(f"#define JOINTS               {joints}")
+remora_data.append(f"#define VARIABLE_OUTPUTS     {vouts}")
+remora_data.append(f"#define VARIABLE_INPUTS      {vins}")
+remora_data.append(f"#define VARIABLES            {max(vins, vouts)}")
+remora_data.append(f"#define DIGITAL_OUTPUTS      {douts_total}")
+remora_data.append(f"#define DIGITAL_OUTPUT_BYTES {douts_total // 8}")
+remora_data.append(f"#define DIGITAL_INPUTS       {dins_total}")
+remora_data.append(f"#define DIGITAL_INPUT_BYTES  {dins_total // 8}")
+remora_data.append(f"#define SPIBUFSIZE           {data_size // 8}")
 remora_data.append("")
 remora_data.append("#define PRU_DATA            0x64617461")
 remora_data.append("#define PRU_READ            0x72656164")
@@ -150,7 +157,7 @@ remora_data.append("        int32_t header;")
 remora_data.append("        int32_t jointFreqCmd[JOINTS];")
 remora_data.append("        int16_t setPoint[VARIABLE_OUTPUTS];")
 remora_data.append("        uint8_t jointEnable;")
-remora_data.append("        uint8_t outputs;")
+remora_data.append("        uint8_t outputs[DIGITAL_OUTPUT_BYTES];")
 remora_data.append("    };")
 remora_data.append("} txData_t;")
 remora_data.append("")
@@ -163,7 +170,7 @@ remora_data.append("    struct {")
 remora_data.append("        int32_t header;")
 remora_data.append("        int32_t jointFeedback[JOINTS];")
 remora_data.append("        int16_t processVariable[VARIABLE_INPUTS];")
-remora_data.append("        uint8_t inputs;")
+remora_data.append("        uint8_t inputs[DIGITAL_INPUT_BYTES];")
 remora_data.append("    };")
 remora_data.append("} rxData_t;")
 remora_data.append("")
