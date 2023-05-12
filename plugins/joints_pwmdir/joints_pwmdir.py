@@ -5,11 +5,11 @@ class Plugin:
     def pinlist(self):
         pinlist_out = []
         for num, joint in enumerate(self.jdata["joints"]):
-            if joint["type"] == "stepper":
+            if joint["type"] == "pwmdir":
                 if "enable" in joint["pins"]:
                     pinlist_out.append((f"EN{num}", joint["pins"]["enable"], "OUTPUT"))
-                pinlist_out.append((f"STP{num}", joint["pins"]["step"], "OUTPUT"))
-                pinlist_out.append((f"DIR{num}", joint["pins"]["dir"], "OUTPUT"))
+                pinlist_out.append((f"PWMDIR_PWM{num}", joint["pins"]["step"], "OUTPUT"))
+                pinlist_out.append((f"PWMDIR_DIR{num}", joint["pins"]["dir"], "OUTPUT"))
                 if joint.get("cl"):
                     pullup = joint["pins"].get("pullup", False)
                     pinlist_out.append((f"ENCA{num}", joint["pins"]["enc_a"], "INPUT", pullup))
@@ -19,7 +19,7 @@ class Plugin:
     def joints(self):
         joints_out = 0
         for _num, joint in enumerate(self.jdata["joints"]):
-            if joint["type"] == "stepper":
+            if joint["type"] == "pwmdir":
                 joints_out += 1
         return joints_out
 
@@ -27,14 +27,17 @@ class Plugin:
         jointcalcs_out = {}
         sysclk = int(self.jdata["clock"]["speed"])
         for num, joint in enumerate(self.jdata["joints"]):
-            if joint["type"] == "stepper":
-                jointcalcs_out[num] = ("oscdiv", int(sysclk / 1000000)) # max 1Mhz
+            if joint["type"] == "pwmdir":
+                pwm_freq = 100000
+                jointcalcs_out[num] = ("none", int(sysclk / pwm_freq)) # max 100%
         return jointcalcs_out
 
     def funcs(self):
-        func_out = ["    // stepgen's"]
+        func_out = ["    // pwmdir's"]
+        sysclk = int(self.jdata["clock"]["speed"])
         for num, joint in enumerate(self.jdata["joints"]):
-            if joint["type"] == "stepper":
+            if joint["type"] == "pwmdir":
+                pwm_freq = 100000
 
                 if "enable" in joint["pins"]:
                     func_out.append(f"    assign EN{num} = jointEnable{num} && ~ERROR;")
@@ -46,24 +49,24 @@ class Plugin:
                     func_out.append(f"        .quadB (ENCB{num}),")
                     func_out.append(f"        .pos (jointFeedback{num})")
                     func_out.append("    );")
-                    func_out.append(f"    stepgen_nf stepgen{num} (")
+                    func_out.append(f"    pwmdir_nf pwmdir{num} (")
                     func_out.append("        .clk (sysclk),")
                     func_out.append(f"        .jointEnable (jointEnable{num} && !ERROR),")
                     func_out.append(f"        .jointFreqCmd (jointFreqCmd{num}),")
-                    func_out.append(f"        .DIR (DIR{num}),")
-                    func_out.append(f"        .STP (STP{num})")
+                    func_out.append(f"        .DIR (PWMDIR_DIR{num}),")
+                    func_out.append(f"        .PWM (PWMDIR_PWM{num})")
                     func_out.append("    );")
                 else:
-                    func_out.append(f"    stepgen stepgen{num} (")
+                    func_out.append(f"    pwmdir #({int(sysclk / pwm_freq)}) pwmdir{num} (")
                     func_out.append("        .clk (sysclk),")
                     func_out.append(f"        .jointEnable (jointEnable{num} && !ERROR),")
                     func_out.append(f"        .jointFreqCmd (jointFreqCmd{num}),")
                     func_out.append(f"        .jointFeedback (jointFeedback{num}),")
-                    func_out.append(f"        .DIR (DIR{num}),")
-                    func_out.append(f"        .STP (STP{num})")
+                    func_out.append(f"        .DIR (PWMDIR_DIR{num}),")
+                    func_out.append(f"        .PWM (PWMDIR_PWM{num})")
                     func_out.append("    );")
 
         return func_out
 
     def ips(self):
-        return ["quad_encoder.v", "stepgen.v"]
+        return ["pwm_dir.v"]

@@ -6,19 +6,12 @@
 module top (
         input sysclk_in,
         output ERROR_OUT,
-        output DOUT0,
-        output DOUT1,
-        output DOUT2,
-        output DOUT3,
-        output DOUT4,
-        output DOUT5,
         input VIN0,
         input VIN1,
-        input DIN0,
-        input DIN1,
-        input DIN2,
-        input DIN3,
-        input DIN4,
+        input SPI_MOSI,
+        output SPI_MISO,
+        input SPI_SCK,
+        input SPI_SSEL,
         output STP0,
         output DIR0,
         output STP1,
@@ -29,12 +22,19 @@ module top (
         output DIR3,
         output STP4,
         output DIR4,
+        output DOUT0,
+        output DOUT1,
+        output DOUT2,
+        output DOUT3,
+        output DOUT4,
+        output DOUT5,
+        input DIN0,
+        input DIN1,
+        input DIN2,
+        input DIN3,
+        input DIN4,
         output PWMOUT0,
         output PWMOUT1,
-        input SPI_MOSI,
-        output SPI_MISO,
-        input SPI_SCK,
-        input SPI_SSEL,
         output ENA
     );
 
@@ -158,7 +158,18 @@ module top (
         .SIGNAL (VIN1)
     );
 
-    // vin's
+    // spi interface
+    wire pkg_ok;
+    spi_slave #(BUFFER_SIZE, 32'h74697277, 48000000) spi1 (
+        .clk (sysclk),
+        .SPI_SCK (SPI_SCK),
+        .SPI_SSEL (SPI_SSEL),
+        .SPI_MOSI (SPI_MOSI),
+        .SPI_MISO (SPI_MISO),
+        .rx_data (rx_data),
+        .tx_data (tx_data),
+        .pkg_timeout (INTERFACE_TIMEOUT)
+    );
 
     // stepgen's
     stepgen stepgen0 (
@@ -202,6 +213,8 @@ module top (
         .STP (STP4)
     );
 
+    // rcservos's
+
     // pwm's
     pwm pwm0 (
         .clk (sysclk),
@@ -214,19 +227,8 @@ module top (
         .pwm (PWMOUT1)
     );
 
-    // spi interface
-    wire pkg_ok;
-    spi_slave #(BUFFER_SIZE, 32'h74697277, 48000000) spi1 (
-        .clk (sysclk),
-        .SPI_SCK (SPI_SCK),
-        .SPI_SSEL (SPI_SSEL),
-        .SPI_MOSI (SPI_MOSI),
-        .SPI_MISO (SPI_MISO),
-        .rx_data (rx_data),
-        .tx_data (tx_data),
-        .pkg_timeout (INTERFACE_TIMEOUT)
-    );
+    // vin's
 
-    // rcservos's
+    // pwmdir's
 
 endmodule
