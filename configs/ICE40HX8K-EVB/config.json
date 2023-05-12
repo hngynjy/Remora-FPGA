@@ -1,0 +1,126 @@
+{
+    "name": "ICE40HX8K-EVB",
+    "description": "5axis-BOB",
+    "toolchain": "icestorm",
+    "family": "ice40",
+    "type": "hx8k",
+    "package": "ct256",
+    "clock": {
+        "speed": "100000000",
+        "pin": "J3"
+    },
+    "interface": {
+        "type": "spi",
+        "pins": {
+            "MOSI": "P12",
+            "MISO": "P11",
+            "SCK": "R11",
+            "SEL": "L11"
+        }
+    },
+    "blink": {
+        "pin": "M12"
+    },
+    "error": {
+        "pin": "R16"
+    },
+    "enable": {
+        "pin": "F5"
+    },
+    "dout": [
+        {
+            "pin": "F4"
+        },
+        {
+            "pin": "D2"
+        },
+        {
+            "pin": "G5"
+        },
+        {
+            "pin": "D1"
+        }
+    ],
+    "din": [
+        {
+            "pin": "H6"
+        },
+        {
+            "pin": "F2"
+        },
+        {
+            "pin": "H3"
+        },
+        {
+            "pin": "F3"
+        },
+        {
+            "pin": "B1"
+        }
+    ],
+    "vout": [
+        {
+            "type": "pwm",
+            "pin": "J2"
+        },
+        {
+            "type": "pwm",
+            "pin": "H5"
+        }
+    ],
+    "vin": [
+        {
+            "type": "frequency",
+            "pin": "E2"
+        },
+        {
+            "type": "frequency",
+            "pin": "G3"
+        }
+    ],
+    "joints": [
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "H1",
+                "dir": "G1"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "J5",
+                "dir": "H2"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "J4",
+                "dir": "G2"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": true,
+            "enc_scale": "2",
+            "pins": {
+                "step": "H4",
+                "dir": "F1",
+                "enc_a": "G4",
+                "enc_b": "E3"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "C2",
+                "dir": "C1"
+            }
+        }
+    ]
+}

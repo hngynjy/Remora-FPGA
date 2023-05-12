@@ -1,0 +1,108 @@
+{
+    "name": "BugblatPIF_2",
+    "description": "do not work / only for testing",
+    "toolchain": "diamond",
+    "family": "LCMXO2",
+    "type": "LCMXO2-7000HC-5TG144C",
+    "package": "TQFP144",
+    "clock": {
+        "speed": "100000000",
+        "pin": "0"
+    },
+    "blink": {
+        "pin": "113"
+    },
+    "interface": {
+        "type": "spi",
+        "pins": {
+            "MOSI": "71",
+            "MISO": "45",
+            "SCK": "44",
+            "SEL": "4"
+        }
+    },
+    "dout": [
+        {
+            "pin": "38"
+        },
+        {
+            "pin": "39"
+        },
+        {
+            "pin": "42"
+        },
+        {
+            "pin": "43"
+        },
+        {
+            "pin": "47"
+        },
+        {
+            "pin": "48"
+        },
+        {
+            "pin": "49"
+        },
+        {
+            "pin": "50"
+        }
+    ],
+    "din": [
+        {
+            "pin": "75"
+        },
+        {
+            "pin": "78"
+        },
+        {
+            "pin": "83"
+        },
+        {
+            "pin": "86"
+        },
+        {
+            "pin": "91"
+        },
+        {
+            "pin": "94"
+        },
+        {
+            "pin": "97"
+        },
+        {
+            "pin": "100"
+        }
+    ],
+    "vout": [
+        {
+            "type": "pwm",
+            "pin": "103"
+        }
+    ],
+    "joints": [
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "73",
+                "dir": "74"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "76",
+                "dir": "77"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "81",
+                "dir": "82"
+            }
+        }
+    ]
+}
