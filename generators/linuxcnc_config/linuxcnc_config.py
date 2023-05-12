@@ -22,6 +22,7 @@ def generate(project):
     VERSION = 1.1
 
     [DISPLAY]
+    PYVCP = port-tester.xml
     DISPLAY = axis
     EDITOR = gedit
     POSITION_OFFSET = RELATIVE
@@ -87,6 +88,9 @@ def generate(project):
 
 
     for num in range(min(project['joints'], len(axis_names))):
+        if num > 2:
+            pass # TODO: setup rotating axis
+
         cfgini_data.append(f"""[AXIS_{axis_names[num]}]
     MAX_VELOCITY = 450
     MAX_ACCELERATION = 750.0
@@ -110,42 +114,153 @@ def generate(project):
     HOME_SEQUENCE = 0
 
     """)
-    open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora.ini", "w").write("\n".join(cfgini_data))
+    open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora-xyz/remora.ini", "w").write("\n".join(cfgini_data))
 
 
     cfghal_data = []
     cfghal_data.append(f"""
-    # load the realtime components
+# load the realtime components
 
-        loadrt [KINS]KINEMATICS
-        loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS
-        loadrt remora
+    loadrt [KINS]KINEMATICS
+    loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS
+    loadrt remora
 
-    # estop loopback, SPI comms enable and feedback
-        net user-enable-out 	<= iocontrol.0.user-enable-out		=> remora.SPI-enable
-        net user-request-enable <= iocontrol.0.user-request-enable	=> remora.SPI-reset
-        net remora-status 	<= remora.SPI-status 			=> iocontrol.0.emc-enable-in
+# estop loopback, SPI comms enable and feedback
+    net user-enable-out 	<= iocontrol.0.user-enable-out		=> remora.SPI-enable
+    net user-request-enable <= iocontrol.0.user-request-enable	=> remora.SPI-reset
+    net remora-status 	<= remora.SPI-status 			=> iocontrol.0.emc-enable-in
 
-    # add the remora and motion functions to threads
-        addf remora.read servo-thread
-        addf motion-command-handler servo-thread
-        addf motion-controller servo-thread
-        addf remora.update-freq servo-thread
-        addf remora.write servo-thread
+# add the remora and motion functions to threads
+    addf remora.read servo-thread
+    addf motion-command-handler servo-thread
+    addf motion-controller servo-thread
+    addf remora.update-freq servo-thread
+    addf remora.write servo-thread
 
     """)
 
     for num in range(min(project['joints'], len(axis_names))):
         cfghal_data.append(f"""# Joint {num} setup
 
-        setp remora.joint.{num}.scale 		[JOINT_{num}]SCALE
-        setp remora.joint.{num}.maxaccel 	[JOINT_{num}]STEPGEN_MAXACCEL
+    setp remora.joint.{num}.scale 		[JOINT_{num}]SCALE
+    setp remora.joint.{num}.maxaccel 	[JOINT_{num}]STEPGEN_MAXACCEL
 
-        net {axis_names[num].lower()}pos-cmd 		<= joint.{num}.motor-pos-cmd 	=> remora.joint.{num}.pos-cmd  
-        net j{num}pos-fb 		<= remora.joint.{num}.pos-fb 	=> joint.{num}.motor-pos-fb
-        net j{num}enable 		<= joint.{num}.amp-enable-out 	=> remora.joint.{num}.enable
+    net {axis_names[num].lower()}pos-cmd 		<= joint.{num}.motor-pos-cmd 	=> remora.joint.{num}.pos-cmd  
+    net j{num}pos-fb 		<= remora.joint.{num}.pos-fb 	=> joint.{num}.motor-pos-fb
+    net j{num}enable 		<= joint.{num}.amp-enable-out 	=> remora.joint.{num}.enable
 
     """)
+    open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora-xyz/remora.hal", "w").write("\n".join(cfghal_data))
 
-    open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora.hal", "w").write("\n".join(cfghal_data))
+
+
+
+
+
+
+    cfghal_data = []
+    cfghal_data.append("loadrt remora")
+    cfghal_data.append("loadusr -Wn ptest pyvcp -c ptest port-tester.xml")
+    cfghal_data.append("loadrt threads name1=porttest period1=1000000")
+
+    cfghal_data.append("addf remora.read porttest")
+    cfghal_data.append("addf remora.write porttest")
+
+    cfghal_data.append("")
+
+    for num in range(project['douts']):
+        cfghal_data.append(f"net dout{num} ptest.btn{num} remora.output.{num} ptest.led-out{num}")
+
+    for num in range(project['dins']):
+        cfghal_data.append(f"net din{num} remora.input.{num} ptest.led-in{num}")
+
+    for num in range(project['vouts']):
+        cfghal_data.append(f"net vout{num} ptest.vout{num}-f remora.SP.{num}")
+
+
+    cfghal_data.append("start")
+    open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora-xyz/port-tester.hal", "w").write("\n".join(cfghal_data))
+
+
+
+
+
+    cfghal_data = []
+    cfghal_data.append("")
+
+    for num in range(project['douts']):
+        cfghal_data.append(f"net dout{num} pyvcp.btn{num} remora.output.{num} pyvcp.led-out{num}")
+
+    for num in range(project['dins']):
+        cfghal_data.append(f"net din{num} remora.input.{num} pyvcp.led-in{num}")
+
+    for num in range(project['vouts']):
+        cfghal_data.append(f"net vout{num} pyvcp.vout{num}-f remora.SP.{num}")
+
+    for num in range(project['vins']):
+        cfghal_data.append(f"# net vin{num} remora.PV.{num} pyvcp.vin{num}")
+
+    open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora-xyz/custom_postgui.hal", "w").write("\n".join(cfghal_data))
+
+
+
+
+    cfgxml_data = []
+    cfgxml_data.append("<pyvcp>")
+    for num in range(project['douts']):
+        cfgxml_data.append("  <hbox>")
+        cfgxml_data.append("    <relief>RIDGE</relief>")
+        cfgxml_data.append("    <bd>2</bd>")
+        cfgxml_data.append("    <button>")
+        cfgxml_data.append(f"      <halpin>\"btn{num}\"</halpin>")
+        cfgxml_data.append(f"      <text>\"DOUT {num}\"</text>")
+        cfgxml_data.append("    </button>")
+        cfgxml_data.append("    <led>")
+        cfgxml_data.append(f"      <halpin>\"led-out{num}\"</halpin>")
+        cfgxml_data.append("      <size>25</size>")
+        cfgxml_data.append("      <on_color>\"green\"</on_color>")
+        cfgxml_data.append("      <off_color>\"red\"</off_color>")
+        cfgxml_data.append("    </led>")
+        cfgxml_data.append("  </hbox>")
+
+    for num in range(project['dins']):
+        cfgxml_data.append("  <hbox>")
+        cfgxml_data.append("    <relief>RIDGE</relief>")
+        cfgxml_data.append("    <bd>2</bd>")
+        cfgxml_data.append("    <label>")
+        cfgxml_data.append(f"      <text>\"DIN {num}\"</text>")
+        cfgxml_data.append("      <font>(\"Helvetica\",14)</font>")
+        cfgxml_data.append("    </label>")
+        cfgxml_data.append("    <led>")
+        cfgxml_data.append(f"      <halpin>\"led-in{num}\"</halpin>")
+        cfgxml_data.append("      <size>25</size>")
+        cfgxml_data.append("      <on_color>\"green\"</on_color>")
+        cfgxml_data.append("      <off_color>\"red\"</off_color>")
+        cfgxml_data.append("    </led>")
+        cfgxml_data.append("  </hbox>")
+
+    for num, vout in enumerate(project['jdata']["vout"]):
+        cfgxml_data.append("  <scale>")
+        cfgxml_data.append("    <font>(\"Helvetica\",16)</font>")
+        cfgxml_data.append("    <width>\"25\"</width>")
+        cfgxml_data.append(f"    <halpin>\"vout{num}\"</halpin>")
+        cfgxml_data.append("    <resolution>0.1</resolution>")
+        cfgxml_data.append("    <orient>HORIZONTAL</orient>")
+        cfgxml_data.append("    <initval>0</initval>")
+        cfgxml_data.append(f"    <min_>{str(vout.get('min', 0))}</min_>")
+        cfgxml_data.append(f"    <max_>{str(vout.get('max', 10))}</max_>")
+        cfgxml_data.append("    <param_pin>1</param_pin>")
+        cfgxml_data.append("  </scale>")
+
+
+
+    cfgxml_data.append("</pyvcp>")
+    open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora-xyz/port-tester.xml", "w").write("\n".join(cfgxml_data))
+
+
+
+
+
+
+
 

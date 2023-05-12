@@ -28,7 +28,7 @@ class Plugin:
         sysclk = int(self.jdata["clock"]["speed"])
         for num, joint in enumerate(self.jdata["joints"]):
             if joint["type"] == "stepper":
-                jointcalcs_out[num] = ("oscdiv", int(sysclk / 1000000)) # max 1Mhz
+                jointcalcs_out[num] = ("oscdiv", int(10000)) # max 100khz
         return jointcalcs_out
 
     def funcs(self):

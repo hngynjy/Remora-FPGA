@@ -81,6 +81,11 @@ class WinForm(QWidget):
             layout.addWidget(self.widgets[key], gpy, jn + 1)
         gpy += 1
         for jn in range(JOINTS):
+            key = f'jcraw{jn}'
+            self.widgets[key] = QLabel(f'cmd: {jn}')
+            layout.addWidget(self.widgets[key], gpy, jn + 1)
+        gpy += 1
+        for jn in range(JOINTS):
             key = f'jc{jn}'
             self.widgets[key] = QLabel(f'cmd: {jn}')
             layout.addWidget(self.widgets[key], gpy, jn + 1)
@@ -142,6 +147,9 @@ class WinForm(QWidget):
         for jn in range(JOINTS):
             key = f"jcs{jn}"
             joints[jn] = int(self.widgets[key].value())
+
+            key = f"jcraw{jn}"
+            self.widgets[key].setText(str(joints[jn]))
 
         for vn in range(VOUTS):
             key = f"vos{vn}"

@@ -29,7 +29,7 @@ class Plugin:
         for num, joint in enumerate(self.jdata["joints"]):
             if joint["type"] == "pwmdir":
                 pwm_freq = 100000
-                jointcalcs_out[num] = ("none", int(sysclk / pwm_freq)) # max 100%
+                jointcalcs_out[num] = ("none", int(sysclk / pwm_freq))
         return jointcalcs_out
 
     def funcs(self):

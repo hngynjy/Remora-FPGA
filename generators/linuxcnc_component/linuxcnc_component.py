@@ -34,6 +34,16 @@ def generate(project):
                 enc_scale = joint.get("enc_scale", 1)
                 remora_data.append(f"#define ENC_SCALE{num}          {enc_scale}")
     remora_data.append("")
+
+    vouts_min = []
+    vouts_max = []
+    for vout in project['jdata']["vout"]:
+        vouts_min.append(str(vout.get("min", 0)))
+        vouts_max.append(str(vout.get("max", 10.0)))
+    remora_data.append(f"float vout_min[VARIABLE_OUTPUTS] = {{{', '.join(vouts_min)}}};")
+    remora_data.append(f"float vout_max[VARIABLE_OUTPUTS] = {{{', '.join(vouts_max)}}};")
+    remora_data.append("")
+
     remora_data.append("typedef union {")
     remora_data.append("    struct {")
     remora_data.append("        uint8_t txBuffer[SPIBUFSIZE];")

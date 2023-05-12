@@ -319,7 +319,7 @@ This is throwing errors from axis.py for some reason...
         }
     }
 
-	for (bn = 0; bn < DIGITAL_OUTPUT_BYTES; bn++) {
+	for (bn = 0; bn < DIGITAL_INPUT_BYTES; bn++) {
         for (n = 0; n < 8; n++) {
             retval = hal_pin_bit_newf(HAL_OUT, &(data->inputs[bn * 8 + n]), comp_id, "%s.input.%01d", prefix, bn * 8 + n);
             if (retval != 0) goto error;
@@ -891,13 +891,12 @@ void spi_write()
 	}
 
 	// Set points
-	for (i = 0; i < VARIABLE_OUTPUTS; i++)
-	{
-		txData.setPoint[i] = *(data->setPoint[i]);
+	for (i = 0; i < VARIABLE_OUTPUTS; i++) {
+		txData.setPoint[i] = (*(data->setPoint[i]) - vout_min[i]) * 65535 / (vout_max[i] - vout_min[i]);
 	}
 
 	// Outputs
-	for (bi = 0; bi < DIGITAL_OUTPUT_BYTES; bi++)
+	for (bi = 0; bi < DIGITAL_OUTPUT_BYTES; bi++) {
         txData.outputs[bi] = 0;
         for (i = 0; i < 8; i++)
         {
@@ -906,6 +905,7 @@ void spi_write()
                 txData.outputs[bi] |= (1 << i);		// output is high
             }
         }
+    }
 
 	if( *(data->SPIstatus) )
 	{
