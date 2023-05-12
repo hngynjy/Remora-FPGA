@@ -51,18 +51,23 @@
     ],
     "din": [
         {
+            "pullup": true,
             "pin": "C2"
         },
         {
+            "pullup": true,
             "pin": "B1"
         },
         {
+            "pullup": true,
             "pin": "A1"
         },
         {
+            "pullup": true,
             "pin": "A2"
         },
         {
+            "pullup": true,
             "pin": "J4"
         }
     ],

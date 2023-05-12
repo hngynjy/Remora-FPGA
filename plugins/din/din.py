@@ -5,7 +5,8 @@ class Plugin:
     def pinlist(self):
         pinlist_out = []
         for num, din in enumerate(self.jdata["din"]):
-            pinlist_out.append((f"DIN{num}", din["pin"], "INPUT"))
+            pullup = din.get("pullup", False)
+            pinlist_out.append((f"DIN{num}", din["pin"], "INPUT", pullup))
         return pinlist_out
 
     def dins(self):

@@ -444,7 +444,12 @@ elif jdata["toolchain"] == "icestorm":
     for pname, pins in pinlists.items():
         pcf_data.append(f"### {pname} ###")
         for pin in pins:
-            pcf_data.append(f"set_io {pin[0]} {pin[1]}")
+
+            options = ""
+            if len(pin) > 3 and pin[3]:
+                options += " -pullup yes"
+
+            pcf_data.append(f"set_io {options} {pin[0]} {pin[1]}")
         pcf_data.append("")
     open(f"{PINS_PATH}/pins.pcf", "w").write("\n".join(pcf_data))
 

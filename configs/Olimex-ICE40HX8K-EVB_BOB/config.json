@@ -43,18 +43,23 @@
     ],
     "din": [
         {
+            "pullup": true,
             "pin": "H6"
         },
         {
+            "pullup": true,
             "pin": "F2"
         },
         {
+            "pullup": true,
             "pin": "H3"
         },
         {
+            "pullup": true,
             "pin": "F3"
         },
         {
+            "pullup": true,
             "pin": "B1"
         }
     ],
@@ -105,13 +110,11 @@
         },
         {
             "type": "stepper",
-            "cl": true,
+            "cl": false,
             "enc_scale": "2",
             "pins": {
                 "step": "H4",
-                "dir": "F1",
-                "enc_a": "G4",
-                "enc_b": "E3"
+                "dir": "F1"
             }
         },
         {

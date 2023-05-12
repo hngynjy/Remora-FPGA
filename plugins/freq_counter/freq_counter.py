@@ -6,7 +6,8 @@ class Plugin:
         pinlist_out = []
         for num, vin in enumerate(self.jdata.get("vin", [])):
             if vin.get("type") == "frequency":
-                pinlist_out.append((f"VIN{num}", vin["pin"], "INPUT"))
+                pullup = vin.get("pullup", False)
+                pinlist_out.append((f"VIN{num}", vin["pin"], "INPUT", pullup))
         return pinlist_out
 
     def vins(self):

@@ -11,9 +11,9 @@ class Plugin:
                 pinlist_out.append((f"STP{num}", joint["pins"]["step"], "OUTPUT"))
                 pinlist_out.append((f"DIR{num}", joint["pins"]["dir"], "OUTPUT"))
                 if joint.get("cl"):
-                    pinlist_out.append((f"ENCA{num}", joint["pins"]["enc_a"], "INPUT"))
-                    pinlist_out.append((f"ENCB{num}", joint["pins"]["enc_b"], "INPUT"))
-
+                    pullup = joint["pins"].get("pullup", False)
+                    pinlist_out.append((f"ENCA{num}", joint["pins"]["enc_a"], "INPUT", pullup))
+                    pinlist_out.append((f"ENCB{num}", joint["pins"]["enc_b"], "INPUT", pullup))
         return pinlist_out
 
     def joints(self):
