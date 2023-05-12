@@ -1,13 +1,15 @@
 #ifndef REMORA_H
 #define REMORA_H
 
-#define JOINTS              5
-#define VARIABLE_OUTPUTS    2
-#define VARIABLE_INPUTS     2
-#define VARIABLES           2
-#define DIGITAL_OUTPUTS     8
-#define DIGITAL_INPUTS      8
-#define SPIBUFSIZE          30
+#define JOINTS               5
+#define VARIABLE_OUTPUTS     2
+#define VARIABLE_INPUTS      2
+#define VARIABLES            2
+#define DIGITAL_OUTPUTS      8
+#define DIGITAL_OUTPUT_BYTES 1
+#define DIGITAL_INPUTS       8
+#define DIGITAL_INPUT_BYTES  1
+#define SPIBUFSIZE           30
 
 #define PRU_DATA            0x64617461
 #define PRU_READ            0x72656164
@@ -16,7 +18,9 @@
 #define STEPBIT             22
 #define STEP_MASK           (1L<<STEPBIT)
 #define STEP_OFFSET         (1L<<(STEPBIT-1))
-#define PRU_BASEFREQ        48000000
+#define PRU_BASEFREQ        120000
+#define PRU_OSC             48000000
+
 
 typedef union {
     struct {
@@ -27,7 +31,7 @@ typedef union {
         int32_t jointFreqCmd[JOINTS];
         int16_t setPoint[VARIABLE_OUTPUTS];
         uint8_t jointEnable;
-        uint8_t outputs;
+        uint8_t outputs[DIGITAL_OUTPUT_BYTES];
     };
 } txData_t;
 
@@ -40,7 +44,7 @@ typedef union
         int32_t header;
         int32_t jointFeedback[JOINTS];
         int16_t processVariable[VARIABLE_INPUTS];
-        uint8_t inputs;
+        uint8_t inputs[DIGITAL_INPUT_BYTES];
     };
 } rxData_t;
 

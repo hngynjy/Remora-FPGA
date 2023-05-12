@@ -129,7 +129,9 @@ static CONTROL parse_ctrl_type(const char *ctrl);
 int rtapi_app_main(void)
 {
     char name[HAL_NAME_LEN + 1];
-	int n, retval;
+	int n = 0;
+	int bn = 0;
+	int retval = 0;
 
 	for (n = 0; n < JOINTS; n++) {
 		if(parse_ctrl_type(ctrl_type[n]) == INVALID) {
@@ -309,19 +311,21 @@ This is throwing errors from axis.py for some reason...
 		*(data->processVariable[n]) = 0.0;
 	}
 
-	for (n = 0; n < DIGITAL_OUTPUTS; n++) {
-		retval = hal_pin_bit_newf(HAL_IN, &(data->outputs[n]),
-				comp_id, "%s.output.%01d", prefix, n);
-		if (retval != 0) goto error;
-		*(data->outputs[n])=0;
-	}
+	for (bn = 0; bn < DIGITAL_OUTPUT_BYTES; bn++) {
+        for (n = 0; n < 8; n++) {
+            retval = hal_pin_bit_newf(HAL_IN, &(data->outputs[bn * 8 + n]), comp_id, "%s.output.%01d", prefix, bn * 8 + n);
+            if (retval != 0) goto error;
+            *(data->outputs[bn * 8 + n]) = 0;
+        }
+    }
 
-	for (n = 0; n < DIGITAL_INPUTS; n++) {
-		retval = hal_pin_bit_newf(HAL_OUT, &(data->inputs[n]),
-				comp_id, "%s.input.%01d", prefix, n);
-		if (retval != 0) goto error;
-		*(data->inputs[n])=0;
-	}
+	for (bn = 0; bn < DIGITAL_OUTPUT_BYTES; bn++) {
+        for (n = 0; n < 8; n++) {
+            retval = hal_pin_bit_newf(HAL_OUT, &(data->inputs[bn * 8 + n]), comp_id, "%s.input.%01d", prefix, bn * 8 + n);
+            if (retval != 0) goto error;
+            *(data->inputs[bn * 8 + n]) = 0;
+        }
+    }
 
 	error:
 	if (retval < 0) {
@@ -740,7 +744,8 @@ void update_freq(void *arg, long period)
 
 void spi_read()
 {
-	int i;
+	int i = 0;
+	int bi = 0;
 	double curr_pos;
 
 	// Data header
@@ -777,6 +782,34 @@ void spi_read()
 						
 						    rxData.jointFeedback[i] *= 4194304;
 
+#ifdef ENC_SCALE0
+if (i == 0) {
+	rxData.jointFeedback[i] /= ENC_SCALE0;
+}
+#endif
+#ifdef ENC_SCALE1
+if (i == 1) {
+	rxData.jointFeedback[i] /= ENC_SCALE1;
+}
+#endif
+#ifdef ENC_SCALE2
+if (i == 2) {
+	rxData.jointFeedback[i] /= ENC_SCALE2;
+}
+#endif
+#ifdef ENC_SCALE3
+if (i == 3) {
+	rxData.jointFeedback[i] /= ENC_SCALE3;
+}
+#endif
+#ifdef ENC_SCALE4
+if (i == 4) {
+	rxData.jointFeedback[i] /= ENC_SCALE4;
+}
+#endif
+						    
+						    
+
 						
 						accum_diff = rxData.jointFeedback[i] - old_count[i];
 						old_count[i] = rxData.jointFeedback[i];
@@ -796,17 +829,15 @@ void spi_read()
 					}
 
 					// Inputs
-					for (i = 0; i < DIGITAL_INPUTS; i++)
-					{
-						if ((rxData.inputs & (1 << i)) != 0)
-						{
-							*(data->inputs[i]) = 1; 		// input is high
-						}
-						else
-						{
-							*(data->inputs[i]) = 0;			// input is low
-						}
-					}
+					for (bi = 0; bi < DIGITAL_INPUT_BYTES; bi++) {
+                        for (i = 0; i < 8; i++) {
+                            if ((rxData.inputs[bi] & (1 << i)) != 0) {
+                                *(data->inputs[bi * 8 + i]) = 1; 		// input is high
+                            } else {
+                                *(data->inputs[bi * 8 + i]) = 0;			// input is low
+                            }
+                        }
+                    }
 					break;
 					
 				case PRU_ESTOP:
@@ -837,7 +868,8 @@ void spi_read()
 
 void spi_write()
 {
-	int i;
+	int i = 0;
+	int bi = 0;
 
 	// Data header
 	txData.header = PRU_WRITE;
@@ -846,7 +878,7 @@ void spi_write()
 	// Joint frequency commands
 	for (i = 0; i < JOINTS; i++)
 	{
-		txData.jointFreqCmd[i] = 48000000 / data->freq[i];
+		txData.jointFreqCmd[i] = PRU_OSC / data->freq[i];
 	}
 
     txData.jointEnable = 0;
@@ -865,14 +897,15 @@ void spi_write()
 	}
 
 	// Outputs
-    txData.outputs = 0;
-	for (i = 0; i < DIGITAL_OUTPUTS; i++)
-	{
-		if (*(data->outputs[i]) == 1)
-		{
-			txData.outputs |= (1 << i);		// output is high
-		}
-	}
+	for (bi = 0; bi < DIGITAL_OUTPUT_BYTES; bi++)
+        txData.outputs[bi] = 0;
+        for (i = 0; i < 8; i++)
+        {
+            if (*(data->outputs[bi * 8 + i]) == 1)
+            {
+                txData.outputs[bi] |= (1 << i);		// output is high
+            }
+        }
 
 	if( *(data->SPIstatus) )
 	{

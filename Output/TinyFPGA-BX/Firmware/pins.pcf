@@ -18,6 +18,8 @@ set_io DOUT5 A8
 set_io VIN0 A6
 set_io VIN1 A7
 
+### pwm_counter ###
+
 ### din ###
 set_io DIN0 C2
 set_io DIN1 B1

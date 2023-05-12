@@ -5,8 +5,8 @@ PACKAGE := cm81
 
 all: remorafpga.bin
 
-remorafpga.json: freq_counter.v quad_encoder.v stepgen.v pwm_out.v spi_slave.v rcservo.v pll.v remorafpga.v
-	yosys -q -l yosys.log -p 'synth_${FAMILY} -top top -json remorafpga.json' freq_counter.v quad_encoder.v stepgen.v pwm_out.v spi_slave.v rcservo.v pll.v remorafpga.v
+remorafpga.json: freq_counter.v pwm_counter.v quad_encoder.v stepgen.v pwm_out.v spi_slave.v rcservo.v pll.v remorafpga.v
+	yosys -q -l yosys.log -p 'synth_${FAMILY} -top top -json remorafpga.json' freq_counter.v pwm_counter.v quad_encoder.v stepgen.v pwm_out.v spi_slave.v rcservo.v pll.v remorafpga.v
 
 remorafpga.asc: remorafpga.json pins.pcf
 	nextpnr-${FAMILY} -q -l nextpnr.log --${TYPE} --package ${PACKAGE} --json remorafpga.json --pcf pins.pcf --asc remorafpga.asc

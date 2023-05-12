@@ -158,10 +158,12 @@ module top (
         .SIGNAL (VIN1)
     );
 
+    // vin's
+
     // stepgen's
     stepgen stepgen0 (
         .clk (sysclk),
-        .jointEnable (jointEnable0),
+        .jointEnable (jointEnable0 && !ERROR),
         .jointFreqCmd (jointFreqCmd0),
         .jointFeedback (jointFeedback0),
         .DIR (DIR0),
@@ -169,7 +171,7 @@ module top (
     );
     stepgen stepgen1 (
         .clk (sysclk),
-        .jointEnable (jointEnable1),
+        .jointEnable (jointEnable1 && !ERROR),
         .jointFreqCmd (jointFreqCmd1),
         .jointFeedback (jointFeedback1),
         .DIR (DIR1),
@@ -177,7 +179,7 @@ module top (
     );
     stepgen stepgen2 (
         .clk (sysclk),
-        .jointEnable (jointEnable2),
+        .jointEnable (jointEnable2 && !ERROR),
         .jointFreqCmd (jointFreqCmd2),
         .jointFeedback (jointFeedback2),
         .DIR (DIR2),
@@ -185,7 +187,7 @@ module top (
     );
     stepgen stepgen3 (
         .clk (sysclk),
-        .jointEnable (jointEnable3),
+        .jointEnable (jointEnable3 && !ERROR),
         .jointFreqCmd (jointFreqCmd3),
         .jointFeedback (jointFeedback3),
         .DIR (DIR3),
@@ -193,7 +195,7 @@ module top (
     );
     stepgen stepgen4 (
         .clk (sysclk),
-        .jointEnable (jointEnable4),
+        .jointEnable (jointEnable4 && !ERROR),
         .jointFreqCmd (jointFreqCmd4),
         .jointFeedback (jointFeedback4),
         .DIR (DIR4),
@@ -214,7 +216,7 @@ module top (
 
     // spi interface
     wire pkg_ok;
-    spi_slave #(BUFFER_SIZE) spi1 (
+    spi_slave #(BUFFER_SIZE, 32'h74697277, 48000000) spi1 (
         .clk (sysclk),
         .SPI_SCK (SPI_SCK),
         .SPI_SSEL (SPI_SSEL),

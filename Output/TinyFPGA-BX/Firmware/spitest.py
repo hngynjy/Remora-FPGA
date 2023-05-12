@@ -87,7 +87,7 @@ pos += 1
 if header == 0x64617461:
     print(f'PRU_DATA: 0x{header:x}')
     for num in range(JOINTS):
-        print(f' Joint({num}): {jointFeedback[num]}')
+        print(f' Joint({num}): {jointFeedback[num]} // 1')
     for num in range(VINS):
         print(f' Var({num}): {processVariable[num]}')
     print(f'inputs {inputs:08b}')

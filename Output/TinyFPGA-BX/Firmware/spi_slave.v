@@ -13,7 +13,7 @@ module spi_slave
         //output [15:0] counter
     );
 
-    reg [24:0] timeout_counter = 0;
+    reg [31:0] timeout_counter = 0;
     //assign counter = bitcnt;
     reg[2:0] SCKr;  always @(posedge clk) SCKr <= {SCKr[1:0], SPI_SCK};
     wire SCK_risingedge = (SCKr[2:1]==2'b01);  // now we can detect SCK rising edges
