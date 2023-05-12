@@ -1,5 +1,5 @@
 
-CONFIG ?= configs/ICE40HX8K-EVB.json
+CONFIG ?= configs/ICE40HX8K-EVB/config.json
 
 all: build
 
