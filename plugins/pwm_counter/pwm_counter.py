@@ -5,21 +5,21 @@ class Plugin:
     def pinlist(self):
         pinlist_out = []
         for num, vin in enumerate(self.jdata.get("vin", [])):
-            if vin.get("type") == "frequency":
+            if vin.get("type") == "pwm":
                 pinlist_out.append((f"VIN{num}", vin["pin"], "INPUT"))
         return pinlist_out
 
     def vins(self):
         vins_out = 0
         for _num, vin in enumerate(self.jdata.get("vin", [])):
-            if vin.get("type") == "frequency":
+            if vin.get("type") == "pwm":
                 vins_out += 1
         return vins_out
 
     def funcs(self):
         func_out = ["    // vin's"]
         for num, vin in enumerate(self.jdata.get("vin", [])):
-            if vin.get("type") == "frequency":
+            if vin.get("type") == "pwm":
                 func_out.append(f"    assign processVariable{num} = 0;")
 
         return func_out
