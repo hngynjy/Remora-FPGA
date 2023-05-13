@@ -77,11 +77,13 @@
     ],
     "vin": [
         {
-            "type": "frequency",
-            "pin": "E2"
+            "type": "encoder",
+            "pullup": true,
+            "pina": "E2",
+            "pinb": "G3"
         },
         {
-            "type": "frequency",
+            "type": "none",
             "pin": "G3"
         }
     ],

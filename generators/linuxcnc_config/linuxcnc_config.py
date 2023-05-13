@@ -198,7 +198,7 @@ def generate(project):
         cfghal_data.append(f"net vout{num} pyvcp.vout{num}-f remora.SP.{num}")
 
     for num in range(project['vins']):
-        cfghal_data.append(f"# net vin{num} remora.PV.{num} pyvcp.vin{num}")
+        cfghal_data.append(f"net vin{num} remora.PV.{num} pyvcp.vin{num}")
 
     open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora-xyz/custom_postgui.hal", "w").write("\n".join(cfghal_data))
 
@@ -207,41 +207,56 @@ def generate(project):
 
     cfgxml_data = []
     cfgxml_data.append("<pyvcp>")
+    cfgxml_data.append("  <hbox>")
+    cfgxml_data.append("    <relief>RIDGE</relief>")
+    cfgxml_data.append("    <bd>2</bd>")
+    cfgxml_data.append("    <label>")
+    cfgxml_data.append(f"      <text>\"DOUT\"</text>")
+    cfgxml_data.append("      <font>(\"Helvetica\",12)</font>")
+    cfgxml_data.append("    </label>")
     for num in range(project['douts']):
-        cfgxml_data.append("  <hbox>")
-        cfgxml_data.append("    <relief>RIDGE</relief>")
-        cfgxml_data.append("    <bd>2</bd>")
         cfgxml_data.append("    <button>")
         cfgxml_data.append(f"      <halpin>\"btn{num}\"</halpin>")
-        cfgxml_data.append(f"      <text>\"DOUT {num}\"</text>")
+        cfgxml_data.append(f"      <text>\"{num}\"</text>")
         cfgxml_data.append("    </button>")
+    cfgxml_data.append("  </hbox>")
+
+    cfgxml_data.append("  <hbox>")
+    cfgxml_data.append("    <relief>RIDGE</relief>")
+    cfgxml_data.append("    <bd>2</bd>")
+    cfgxml_data.append("    <label>")
+    cfgxml_data.append(f"      <text>\"DOUT\"</text>")
+    cfgxml_data.append("      <font>(\"Helvetica\",12)</font>")
+    cfgxml_data.append("    </label>")
+    for num in range(project['douts']):
         cfgxml_data.append("    <led>")
         cfgxml_data.append(f"      <halpin>\"led-out{num}\"</halpin>")
         cfgxml_data.append("      <size>25</size>")
         cfgxml_data.append("      <on_color>\"green\"</on_color>")
         cfgxml_data.append("      <off_color>\"red\"</off_color>")
         cfgxml_data.append("    </led>")
-        cfgxml_data.append("  </hbox>")
+    cfgxml_data.append("  </hbox>")
 
+
+    cfgxml_data.append("  <hbox>")
+    cfgxml_data.append("    <relief>RIDGE</relief>")
+    cfgxml_data.append("    <bd>2</bd>")
+    cfgxml_data.append("    <label>")
+    cfgxml_data.append(f"      <text>\"DIN\"</text>")
+    cfgxml_data.append("      <font>(\"Helvetica\",12)</font>")
+    cfgxml_data.append("    </label>")
     for num in range(project['dins']):
-        cfgxml_data.append("  <hbox>")
-        cfgxml_data.append("    <relief>RIDGE</relief>")
-        cfgxml_data.append("    <bd>2</bd>")
-        cfgxml_data.append("    <label>")
-        cfgxml_data.append(f"      <text>\"DIN {num}\"</text>")
-        cfgxml_data.append("      <font>(\"Helvetica\",14)</font>")
-        cfgxml_data.append("    </label>")
         cfgxml_data.append("    <led>")
         cfgxml_data.append(f"      <halpin>\"led-in{num}\"</halpin>")
         cfgxml_data.append("      <size>25</size>")
         cfgxml_data.append("      <on_color>\"green\"</on_color>")
         cfgxml_data.append("      <off_color>\"red\"</off_color>")
         cfgxml_data.append("    </led>")
-        cfgxml_data.append("  </hbox>")
+    cfgxml_data.append("  </hbox>")
 
     for num, vout in enumerate(project['jdata']["vout"]):
         cfgxml_data.append("  <scale>")
-        cfgxml_data.append("    <font>(\"Helvetica\",16)</font>")
+        cfgxml_data.append("    <font>(\"Helvetica\",12)</font>")
         cfgxml_data.append("    <width>\"25\"</width>")
         cfgxml_data.append(f"    <halpin>\"vout{num}\"</halpin>")
         cfgxml_data.append("    <resolution>0.1</resolution>")
@@ -252,7 +267,43 @@ def generate(project):
         cfgxml_data.append("    <param_pin>1</param_pin>")
         cfgxml_data.append("  </scale>")
 
+    for num, vin in enumerate(project['jdata']["vin"]):
 
+        if True:
+            cfgxml_data.append("<meter>")
+            cfgxml_data.append(f"    <halpin>\"vin{num}\"</halpin>")
+            cfgxml_data.append(f"    <text>\"VIN{num}\"</text>")
+            cfgxml_data.append(f"    <subtext>\"{vin.get('type', '-')}\"</subtext>")
+            cfgxml_data.append("    <size>150</size>")
+            cfgxml_data.append("    <min_>-32800</min_>")
+            cfgxml_data.append("    <max_>32800</max_>")
+            cfgxml_data.append("    <majorscale>10000</majorscale>")
+            cfgxml_data.append("    <minorscale>1000</minorscale>")
+            cfgxml_data.append("    <region1>(-32800,0,\"red\")</region1>")
+            cfgxml_data.append("    <region2>(0,32800,\"green\")</region2>")
+            cfgxml_data.append("</meter>")
+        elif True:
+            cfgxml_data.append("<bar>")
+            cfgxml_data.append(f"    <halpin>\"vin{num}\"</halpin>")
+            cfgxml_data.append("    <min_>-32800</min_>")
+            cfgxml_data.append("    <max_>32800</max_>")
+            cfgxml_data.append("    <format>\"05d\"</format>")
+            cfgxml_data.append("    <bgcolor>\"grey\"</bgcolor>")
+            cfgxml_data.append("    <fillcolor>\"red\"</fillcolor>")
+            cfgxml_data.append("    <range1>0,100,\"green\"</range1>")
+            cfgxml_data.append("    <range2>101,135,\"orange\"</range2>")
+            cfgxml_data.append("    <range3>136, 150,\"red\"</range3>")
+            cfgxml_data.append("    <canvas_width>200</canvas_width>")
+            cfgxml_data.append("    <canvas_height>50</canvas_height>")
+            cfgxml_data.append("    <bar_height>30</bar_height>")
+            cfgxml_data.append("    <bar_width>150</bar_width>")
+            cfgxml_data.append("</bar>")
+        else:
+            cfgxml_data.append("<number>")
+            cfgxml_data.append(f"    <halpin>\"vin{num}\"</halpin>")
+            cfgxml_data.append("    <font>(\"Helvetica\",24)</font>")
+            cfgxml_data.append("    <format>\"05d\"</format>")
+            cfgxml_data.append("</number>")
 
     cfgxml_data.append("</pyvcp>")
     open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora-xyz/port-tester.xml", "w").write("\n".join(cfgxml_data))
