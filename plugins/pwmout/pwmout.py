@@ -22,7 +22,7 @@ class Plugin:
             if vout["type"] == "pwm":
                 func_out.append(f"    pwm pwm{num} (")
                 func_out.append("        .clk (sysclk),")
-                func_out.append(f"        .dty (setPoint{num}),")
+                func_out.append(f"        .dty (setPoint{num}[31:16]),")
                 func_out.append(f"        .pwm (PWMOUT{num})")
                 func_out.append("    );")
 

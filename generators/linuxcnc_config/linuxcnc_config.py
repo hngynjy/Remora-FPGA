@@ -309,9 +309,3 @@ def generate(project):
     open(f"{project['LINUXCNC_PATH']}/ConfigSamples/remora-xyz/port-tester.xml", "w").write("\n".join(cfgxml_data))
 
 
-
-
-
-
-
-

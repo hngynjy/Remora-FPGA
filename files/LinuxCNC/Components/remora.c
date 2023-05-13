@@ -892,7 +892,7 @@ void spi_write()
 
 	// Set points
 	for (i = 0; i < VARIABLE_OUTPUTS; i++) {
-		txData.setPoint[i] = (*(data->setPoint[i]) - vout_min[i]) * 65535 / (vout_max[i] - vout_min[i]);
+		txData.setPoint[i] = (*(data->setPoint[i]) - vout_min[i]) * 0xFFFFFFFF / (vout_max[i] - vout_min[i]);
 	}
 
 	// Outputs

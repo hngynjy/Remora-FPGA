@@ -59,7 +59,11 @@ def generate(project):
     spitest_data.append(f"PRU_OSC = {project['jdata']['clock']['speed']}")
     spitest_data.append("")
 
-
+    spitest_data.append("voutminmax = [")
+    for num, vout in enumerate(project['jdata']["vout"]):
+        spitest_data.append(f"    ({vout.get('min', 0)}, {vout.get('max', 10)}),")
+    spitest_data.append("]")
+    spitest_data.append("")
 
     spitest_data.append("""
 
@@ -94,8 +98,8 @@ class WinForm(QWidget):
         for vn in range(VOUTS):
             key = f'vos{vn}'
             self.widgets[key] = QSlider(Qt.Horizontal)
-            self.widgets[key].setMinimum(0)
-            self.widgets[key].setMaximum(65535)
+            self.widgets[key].setMinimum(voutminmax[vn][0])
+            self.widgets[key].setMaximum(voutminmax[vn][1])
             self.widgets[key].setValue(0)
             layout.addWidget(self.widgets[key], gpy, vn + 1)
         gpy += 1
@@ -138,7 +142,7 @@ class WinForm(QWidget):
 
     def runTimer(self):
 
-        data = [0] * 30
+        #data = [0] * {project['data_size'] // 8}
         data[0] = 0x74
         data[1] = 0x69
         data[2] = 0x72
@@ -180,11 +184,15 @@ class WinForm(QWidget):
                 data[bn + byte] = joint[byte]
             bn += 4
 
-        for value in vouts:
-            vout = list(pack('<H', (value)))
-            for byte in range(2):
+        for vn, value in enumerate(vouts):
+            value = int((value - voutminmax[vn][0]) * 0xFFFFFFFF / (voutminmax[vn][1] - voutminmax[vn][0]))
+
+            print(vn, value)
+
+            vout = list(pack('<I', (value)))
+            for byte in range(4):
                 data[bn + byte] = vout[byte]
-            bn += 2
+            bn += 4
 
 
         # jointEnable and dout (TODO: split in bits)
@@ -214,8 +222,8 @@ class WinForm(QWidget):
             jointFeedback[num] = unpack('<i', bytes(rec[pos:pos+4]))[0]
             pos += 4
         for num in range(VINS):
-            processVariable[num] = unpack('<h', bytes(rec[pos:pos+2]))[0]
-            pos += 2
+            processVariable[num] = unpack('<i', bytes(rec[pos:pos+4]))[0]
+            pos += 4
         inputs = unpack('<B', bytes(rec[pos:pos+1]))[0]
         pos += 1
 

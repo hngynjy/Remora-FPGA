@@ -115,11 +115,11 @@ def generate(project):
 
     top_data.append(f"    // vouts {project['vouts']}")
     for num in range(project['vouts']):
-        top_data.append(f"    wire [15:0] setPoint{num};")
+        top_data.append(f"    wire [31:0] setPoint{num};")
     top_data.append("")
     top_data.append(f"    // vins {project['vins']}")
     for num in range(project['vins']):
-        top_data.append(f"    wire [15:0] processVariable{num};")
+        top_data.append(f"    wire [31:0] processVariable{num};")
     top_data.append("")
     top_data.append(f"    // joints {project['joints']}")
     for num in range(project['joints']):
@@ -147,9 +147,9 @@ def generate(project):
 
     for num in range(project['vouts']):
         top_data.append(
-            f"    assign setPoint{num} = {{rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};"
+            f"    assign setPoint{num} = {{rx_data[{pos-3*8-1}:{pos-3*8-8}], rx_data[{pos-2*8-1}:{pos-2*8-8}], rx_data[{pos-1*8-1}:{pos-1*8-8}], rx_data[{pos-1}:{pos-8}]}};"
         )
-        pos -= 16
+        pos -= 32
 
     for num in range((project["joints_en_total"] + 7) // 8 * 8):
         if project["joints_en_total"] - num - 1 < project['joints']:
@@ -182,7 +182,7 @@ def generate(project):
         )
 
     for num in range(project['vins']):
-        top_data.append(f"        processVariable{num}[7:0], processVariable{num}[15:8],")
+        top_data.append(f"        processVariable{num}[7:0], processVariable{num}[15:8], processVariable{num}[23:16], processVariable{num}[31:24],")
 
     for num in range(project['dins_total']):
         top_data.append(f"        DIN{project['dins_total'] - num - 1},")

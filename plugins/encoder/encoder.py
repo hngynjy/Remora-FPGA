@@ -30,7 +30,7 @@ class Plugin:
         func_out = ["    // vencoder's"]
         for num, vin in enumerate(self.jdata.get("vin", [])):
             if vin.get("type") == "encoder":
-                func_out.append(f"    quad_encoder #(16) vencoder{num} (")
+                func_out.append(f"    quad_encoder #(32) vencoder{num} (")
                 func_out.append("        .clk (sysclk),")
                 func_out.append(f"        .quadA (ENCODER_A{num}),")
                 func_out.append(f"        .quadB (ENCODER_B{num}),")

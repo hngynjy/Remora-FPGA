@@ -4,7 +4,7 @@ module testb;
     reg clk = 0;
     always #2 clk = !clk;
 
-    reg signed [15:0] dty = 16'd10000;
+    reg signed [31:0] dty = 16'd10000;
 
     wire PWM;
 
@@ -14,8 +14,8 @@ module testb;
         $dumpvars(1, dty);
         $dumpvars(2, PWM);
         
-        # 500000 dty = 16'd30000;
-        # 500000 dty = 16'd50000;
+        # 500000 dty = 32'd30000;
+        # 500000 dty = 32'd50000;
         # 500000 $finish;
     end
 

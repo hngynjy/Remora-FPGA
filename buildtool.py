@@ -84,11 +84,11 @@ project["dins_total"] = max(project["dins_total"], 8)
 
 project['tx_data_size'] = 32
 project['tx_data_size'] += project["joints"] * 32
-project['tx_data_size'] += project["vins"] * 16
+project['tx_data_size'] += project["vins"] * 32
 project['tx_data_size'] += project['dins_total']
 project['rx_data_size'] = 32
 project['rx_data_size'] += project["joints"] * 32
-project['rx_data_size'] += project["vouts"] * 16
+project['rx_data_size'] += project["vouts"] * 32
 project['rx_data_size'] += project["joints_en_total"]
 project['rx_data_size'] += project["douts_total"]
 project['data_size'] = max(project['tx_data_size'], project['rx_data_size'])
