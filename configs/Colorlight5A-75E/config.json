@@ -6,46 +6,24 @@
     "type": "25k",
     "package": "CABGA256",
     "clock": {
-        "speed": "100000000",
-        "pin": "A10"
+        "speed": "25000000",
+        "pin": "P6"
     },
     "interface": {
         "type": "spi",
         "pins": {
-            "MOSI": "G14",
-            "MISO": "G13",
-            "SCK": "F12",
-            "SEL": "F13"
+            "MOSI": "H13",
+            "MISO": "G12",
+            "SCK": "G13",
+            "SEL": "G14"
         }
     },
-    "dout": [
-        {
-            "pin": "P11"
-        },
-        {
-            "pin": "N11"
-        },
-        {
-            "pin": "M11"
-        },
-        {
-            "pin": "T13"
-        },
-        {
-            "pin": "R12"
-        },
-        {
-            "pin": "R13"
-        },
-        {
-            "pin": "R14"
-        },
-        {
-            "pin": "T14"
-        }
-    ],
+    "blink": {
+        "pin": "T6"
+    },
     "din": [
         {
+            "comment": "J1.1",
             "pin": "C4"
         },
         {
@@ -62,41 +40,207 @@
         },
         {
             "pin": "F4"
+        },
+        {
+            "comment": "J2.1",
+            "pin": "F3"
+        },
+        {
+            "pin": "F5"
+        },
+        {
+            "pin": "G3"
+        },
+        {
+            "pin": "G4"
+        },
+        {
+            "pin": "H3"
+        },
+        {
+            "pin": "H4"
+        }
+    ],
+    "vin": [
+        {
+            "comment": "J3.1",
+            "type": "frequency",
+            "pin": "G5"
+        },
+        {
+            "type": "frequency",
+            "pin": "H5"
+        },
+        {
+            "type": "frequency",
+            "pin": "J5"
+        },
+        {
+            "type": "frequency",
+            "pin": "J4"
+        },
+        {
+            "type": "frequency",
+            "pin": "B1"
+        },
+        {
+            "type": "frequency",
+            "pin": "C2"
+        },
+        {
+            "comment": "J4.1+2",
+            "type": "encoder",
+            "pina": "C1",
+            "pinb": "D1"
+        },
+        {
+            "type": "encoder",
+            "pina": "E2",
+            "pinb": "E1"
+        },
+        {
+            "type": "encoder",
+            "pina": "F2",
+            "pinb": "F1"
+        }
+    ],
+    "dout": [
+        {
+            "comment": "J5.1",
+            "pin": "G2"
+        },
+        {
+            "pin": "G1"
+        },
+        {
+            "pin": "H2"
+        },
+        {
+            "pin": "K5"
+        },
+        {
+            "pin": "K4"
+        },
+        {
+            "pin": "L3"
+        },
+        {
+            "comment": "J6.1",
+            "pin": "L4"
+        },
+        {
+            "pin": "L5"
+        },
+        {
+            "pin": "P2"
+        },
+        {
+            "pin": "R2"
+        },
+        {
+            "pin": "T2"
+        },
+        {
+            "pin": "R3"
         }
     ],
     "vout": [
         {
-            "type": "pwm",
-            "pin": "D16"
+            "comment": "J7.1",
+            "type": "sine",
+            "start": "0",
+            "pin": "T3"
         },
         {
-            "type": "pwm",
-            "pin": "C15"
+            "type": "sine",
+            "start": "10",
+            "pin": "R4"
+        },
+        {
+            "type": "sine",
+            "start": "20",
+            "pin": "M5"
+        },
+        {
+            "type": "sine",
+            "pins": ["P5", "N6", "N7"]
         }
     ],
     "joints": [
         {
+            "comment": "J9.1",
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "P11",
+                "dir": "N11",
+                "en": "M11"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "T13",
+                "dir": "R12",
+                "en": "R13"
+            }
+        },
+        {
+            "comment": "J10.1",
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "R14",
+                "dir": "T14",
+                "en": "D16"
+            }
+        },
+        {
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "C15",
+                "dir": "C16",
+                "en": "B16"
+            }
+        },
+        {
+            "comment": "J11.1",
             "type": "stepper",
             "cl": false,
             "pins": {
                 "step": "B15",
-                "dir": "C14"
+                "dir": "C14",
+                "en": "T15"
             }
         },
         {
             "type": "stepper",
             "cl": false,
             "pins": {
-                "step": "T15",
-                "dir": "P15"
+                "step": "P15",
+                "dir": "R15",
+                "en": "P12"
+            }
+        },
+        {
+            "comment": "J12.1",
+            "type": "stepper",
+            "cl": false,
+            "pins": {
+                "step": "P13",
+                "dir": "N12",
+                "en": "N13"
             }
         },
         {
             "type": "stepper",
             "cl": false,
             "pins": {
-                "step": "R15",
-                "dir": "P12"
+                "step": "M12",
+                "dir": "P14",
+                "en": "N14"
             }
         }
     ]

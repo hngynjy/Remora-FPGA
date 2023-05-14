@@ -35,7 +35,6 @@ if project['jdata']["toolchain"] == "icestorm":
     else:
         project['pinlists']["main"] = (("sysclk", project['jdata']["clock"]["pin"], "INPUT"),)
 
-
 if "blink" in project['jdata']:
     project['pinlists']["blink"] = (("BLINK_LED", project['jdata']["blink"]["pin"], "OUTPUT"),)
 

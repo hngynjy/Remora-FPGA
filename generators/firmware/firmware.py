@@ -151,22 +151,26 @@ def generate(project):
         )
         pos -= 32
 
-    for num in range((project["joints_en_total"] + 7) // 8 * 8):
-        if project["joints_en_total"] - num - 1 < project['joints']:
-            top_data.append(f"    assign jointEnable{project['joints_en_total'] - num - 1} = rx_data[{pos-1}];")
-        else:
-            top_data.append(f"    // assign jointEnable{project['joints_en_total'] - num - 1} = rx_data[{pos-1}];")
-        pos -= 1
 
+    for dbyte in range(project['joints_en_total'] // 8):
+        for num in range(8):
+            bitnum = dbyte * 8 + (7 - num)
+            if bitnum < project['joints']:
+                top_data.append(f"    assign jointEnable{bitnum} = rx_data[{pos-1}];")
+            else:
+                top_data.append(f"    // assign jointEnable{bitnum} = rx_data[{pos-1}];")
+            pos -= 1
 
-    for num in range((project['douts_total'] + 7) // 8 * 8):
-        if project['douts_total'] - num - 1 < project['douts']:
-            top_data.append(f"    assign DOUT{project['douts_total'] - num - 1} = rx_data[{pos-1}];")
-        else:
-            top_data.append(
-                f"    // assign DOUT{project['douts_total'] - num - 1} = rx_data[{pos-1}];"
-            )
-        pos -= 1
+    for dbyte in range(project['douts_total'] // 8):
+        for num in range(8):
+            bitnum = dbyte * 8 + (7 - num)
+            if bitnum < project['douts']:
+                top_data.append(f"    assign DOUT{bitnum} = rx_data[{pos-1}];")
+            else:
+                top_data.append(
+                    f"    // assign DOUT{bitnum} = rx_data[{pos-1}];"
+                )
+            pos -= 1
 
 
     top_data.append("")
@@ -184,12 +188,21 @@ def generate(project):
     for num in range(project['vins']):
         top_data.append(f"        processVariable{num}[7:0], processVariable{num}[15:8], processVariable{num}[23:16], processVariable{num}[31:24],")
 
-    for num in range(project['dins_total']):
-        top_data.append(f"        DIN{project['dins_total'] - num - 1},")
+    tdins = []
+
+
+    for dbyte in range(project['dins_total'] // 8):
+        for num in range(8):
+            tdins.append(f"DIN{num + (project['dins_total'] // 8 - 1 - dbyte) * 8}")
+
 
     fill = project['data_size'] - project['tx_data_size']
+
     if fill > 0:
+        top_data.append(f"        {', '.join(tdins)},")
         top_data.append(f"        {fill}'d0")
+    else:
+        top_data.append(f"        {', '.join(tdins)}")
     top_data.append("    };")
 
     top_data.append("")

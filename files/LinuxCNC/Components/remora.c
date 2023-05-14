@@ -881,14 +881,17 @@ void spi_write()
 		txData.jointFreqCmd[i] = PRU_OSC / data->freq[i];
 	}
 
-    txData.jointEnable = 0;
-	for (i = 0; i < JOINTS; i++)
-	{
-		if (*(data->stepperEnable[i]) == 1)
-		{
-			txData.jointEnable |= (1 << i);		
-		}
-	}
+
+	for (bi = 0; bi < JOINT_ENABLE_BYTES; bi++) {
+        txData.jointEnable[bi] = 0;
+        for (i = 0; i < JOINTS; i++)
+        {
+            if (*(data->stepperEnable[bi * 8 + i]) == 1)
+            {
+                txData.jointEnable[bi] |= (1 << i);		
+            }
+        }
+    }
 
 	// Set points
 	for (i = 0; i < VARIABLE_OUTPUTS; i++) {
